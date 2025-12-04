@@ -503,12 +503,41 @@ def screen_audio_adv(stdscr):
 
 def screen_visual(stdscr):
     cols=[(curses.COLOR_RED,"ROJO"),(curses.COLOR_GREEN,"VERDE"),(curses.COLOR_BLUE,"AZUL"),(curses.COLOR_WHITE,"BLANCO")]
-    stdscr.clear(); draw_header(stdscr,"VISUAL"); center(stdscr,10,"Tecla cambiar color."); stdscr.getch()
+    
+    stdscr.clear()
+    draw_header(stdscr,"TEST VISUAL")
+    center(stdscr, 10, "════════════════════════════════", curses.A_BOLD)
+    center(stdscr, 11, "  PRUEBA DE PANTALLA Y COLORES  ", curses.A_BOLD)
+    center(stdscr, 12, "════════════════════════════════", curses.A_BOLD)
+    center(stdscr, 15, "Presiona cualquier tecla para comenzar", curses.color_pair(6))
+    stdscr.refresh()
+    stdscr.getch()
+    
     for c,n in cols:
-        curses.init_pair(20,curses.COLOR_WHITE,c); stdscr.bkgd(' ',curses.color_pair(20)); stdscr.clear()
-        stdscr.addstr(0,0,f" {n} ",curses.A_BOLD); stdscr.refresh(); stdscr.getch()
-    stdscr.bkgd(' ',curses.color_pair(1)); stdscr.clear(); draw_header(stdscr,"VISUAL")
-    center(stdscr,10,"¿Defectos?"); center(stdscr,12,"[N] NO   /   [S] SÍ")
+        curses.init_pair(20,curses.COLOR_WHITE,c)
+        stdscr.bkgd(' ',curses.color_pair(20))
+        stdscr.clear()
+        h, w = stdscr.getmaxyx()
+        # Texto más grande en el centro
+        center(stdscr, h//2 - 2, "═══════════════════════════════════", curses.A_BOLD)
+        center(stdscr, h//2 - 1, f"        COLOR: {n}        ", curses.A_BOLD)
+        center(stdscr, h//2, "═══════════════════════════════════", curses.A_BOLD)
+        center(stdscr, h//2 + 3, "¿Se ve este color correctamente?", curses.A_BOLD)
+        center(stdscr, h//2 + 5, "[ Presiona cualquier tecla ]")
+        stdscr.refresh()
+        stdscr.getch()
+    
+    stdscr.bkgd(' ',curses.color_pair(1))
+    stdscr.clear()
+    draw_header(stdscr,"TEST VISUAL - RESULTADO")
+    center(stdscr, 10, "════════════════════════════════", curses.A_BOLD)
+    center(stdscr, 11, "  ¿HAY DEFECTOS EN LA PANTALLA?  ", curses.A_BOLD)
+    center(stdscr, 12, "════════════════════════════════", curses.A_BOLD)
+    center(stdscr, 15, "(Píxeles muertos, manchas, líneas, etc.)", curses.A_DIM)
+    center(stdscr, 18, "[N] NO - Todo perfecto", curses.color_pair(2) | curses.A_BOLD)
+    center(stdscr, 20, "[S] SÍ - Hay defectos", curses.color_pair(3) | curses.A_BOLD)
+    stdscr.refresh()
+    
     return "OK" if stdscr.getch() in [ord('n'),ord('N')] else "FAIL"
 
 def map_key(k):

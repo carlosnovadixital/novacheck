@@ -210,10 +210,21 @@ def draw_header(stdscr, sub=""):
         stdscr.addstr(2, 0, "=" * (w-1), curses.color_pair(4)|curses.A_BOLD)
     except: pass
 
-def safe_print(stdscr, y, x, txt, attr=0):
+def safe_print(stdscr, y, x, txt, attr=0, large=False):
+    """
+    Imprime texto de forma segura. Si large=True, agrega espaciado adicional
+    """
     h, w = stdscr.getmaxyx()
-    if y < h and x < w:
-        try: stdscr.addstr(y, x, txt[:w-x-1], attr)
+    # Ajustar Y para el nuevo header de 3 líneas
+    y_adjusted = y + 2 if y > 2 else y
+    if y_adjusted < h and x < w:
+        try: 
+            if large:
+                # Texto más grande usando espacios adicionales
+                txt_large = " ".join(txt)
+                stdscr.addstr(y_adjusted, x, txt_large[:w-x-1], attr)
+            else:
+                stdscr.addstr(y_adjusted, x, txt[:w-x-1], attr)
         except: pass
 
 def center(stdscr, y, txt, attr=0):

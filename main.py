@@ -178,7 +178,17 @@ def init_ui():
     curses.init_pair(3, curses.COLOR_RED, curses.COLOR_BLUE)
     curses.init_pair(4, curses.COLOR_BLACK, curses.COLOR_CYAN)
     curses.init_pair(5, curses.COLOR_BLACK, curses.COLOR_GREEN)
+    curses.init_pair(6, curses.COLOR_YELLOW, curses.COLOR_BLUE)  # Amarillo para destacar
     s.bkgd(' ', curses.color_pair(1))
+    
+    # Intentar ajustar el tamaño de fuente del terminal (puede no funcionar en todos los terminales)
+    try:
+        # Enviar secuencia de escape para aumentar tamaño de fuente
+        sys.stdout.write('\033]50;fixed:pixelsize=20\007')
+        sys.stdout.flush()
+    except:
+        pass
+    
     return s
 
 def draw_header(stdscr, sub=""):

@@ -320,13 +320,41 @@ def screen_tech(stdscr):
     return name if name else "Anónimo"
 
 def screen_hw_info(stdscr, hw, tech):
-    stdscr.clear(); draw_header(stdscr, "HARDWARE")
-    r=3; safe_print(stdscr, r, 2, f"TECNICO: {tech}", curses.color_pair(4)); r+=2
-    for k,v in [("MOD",hw["modelo"]),("SN",hw["serial"]),("CPU",hw["cpu"]),("RAM",hw["ram"])]:
-        safe_print(stdscr, r, 2, f"{k}: {v}"); r+=1
-    r+=1; safe_print(stdscr, r, 2, "ALMACENAMIENTO:", curses.A_BOLD); r+=1
-    for d in get_real_disks(): safe_print(stdscr, r, 4, f"- {d['model']} ({d['dev']})"); r+=1
-    center(stdscr, r+2, "[ENTER] Continuar"); 
+    stdscr.clear()
+    draw_header(stdscr, "INFORMACIÓN HARDWARE")
+    
+    r=5
+    # Técnico con más espacio
+    safe_print(stdscr, r, 4, "═══════════════════════════════════════", curses.color_pair(6) | curses.A_BOLD)
+    r+=1
+    safe_print(stdscr, r, 4, f"  TÉCNICO: {tech}", curses.color_pair(4) | curses.A_BOLD)
+    r+=1
+    safe_print(stdscr, r, 4, "═══════════════════════════════════════", curses.color_pair(6) | curses.A_BOLD)
+    r+=3
+    
+    # Información del sistema con mejor formato
+    safe_print(stdscr, r, 4, "SISTEMA:", curses.A_BOLD | curses.color_pair(6))
+    r+=2
+    for k,v in [("MODELO",hw["modelo"]),("SERIAL",hw["serial"]),("CPU",hw["cpu"]),("RAM",hw["ram"])]:
+        safe_print(stdscr, r, 6, f"• {k}:", curses.A_BOLD)
+        safe_print(stdscr, r, 20, f"{v}")
+        r+=2
+    
+    r+=1
+    safe_print(stdscr, r, 4, "ALMACENAMIENTO:", curses.A_BOLD | curses.color_pair(6))
+    r+=2
+    disks = get_real_disks()
+    if disks:
+        for d in disks:
+            safe_print(stdscr, r, 6, f"• {d['model']} ({d['dev']})")
+            r+=2
+    else:
+        safe_print(stdscr, r, 6, "• No detectado")
+        r+=2
+    
+    r+=2
+    center(stdscr, r, "[ Presiona ENTER para continuar ]", curses.color_pair(6) | curses.A_BOLD)
+    stdscr.refresh()
     while stdscr.getch() not in [10,13]: pass
 
 def screen_usb_interactive(stdscr):

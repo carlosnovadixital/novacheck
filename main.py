@@ -227,9 +227,17 @@ def safe_print(stdscr, y, x, txt, attr=0, large=False):
                 stdscr.addstr(y_adjusted, x, txt[:w-x-1], attr)
         except: pass
 
-def center(stdscr, y, txt, attr=0):
-    h, w = stdscr.getmaxyx(); x = max(0, int((w-len(txt))/2))
-    safe_print(stdscr, y, x, txt, attr)
+def center(stdscr, y, txt, attr=0, large=False):
+    """
+    Centra texto en la pantalla. Si large=True, usa fuente más grande
+    """
+    h, w = stdscr.getmaxyx()
+    if large:
+        txt_display = " ".join(txt)
+    else:
+        txt_display = txt
+    x = max(0, int((w-len(txt_display))/2))
+    safe_print(stdscr, y, x, txt, attr, large)
 
 # --- NETWORKING ---
 def send_to_server(hw_info, status, tests={}, wipe="PENDING", tech="Unknown"):

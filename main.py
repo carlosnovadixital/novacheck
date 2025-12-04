@@ -397,14 +397,6 @@ def screen_visual(stdscr):
     center(stdscr,10,"¿Defectos?"); center(stdscr,12,"[N] NO   /   [S] SÍ")
     return "OK" if stdscr.getch() in [ord('n'),ord('N')] else "FAIL"
 
-def map_key(k):
-    if k in [10,13]: return "ENTER"
-    if k==32: return "SPACE"
-    if k in [263,127]: return "BKSP"
-    if k==9: return "TAB"
-    if k==60: return "<"
-    try: return chr(k).upper()
-    except: return None
 
 def screen_keyboard_vis(stdscr):
     stdscr.clear(); draw_header(stdscr, "TECLADO")

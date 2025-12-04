@@ -192,9 +192,22 @@ def init_ui():
     return s
 
 def draw_header(stdscr, sub=""):
-    h, w = stdscr.getmaxyx(); t = f" {APP_TITLE} | {sub}"
+    h, w = stdscr.getmaxyx()
+    # Línea superior decorativa
+    try: 
+        stdscr.addstr(0, 0, "=" * (w-1), curses.color_pair(4)|curses.A_BOLD)
+    except: pass
+    
+    # Título principal más grande
+    t = f"  {APP_TITLE}  |  {sub}  "
     bar = t + " " * (w - len(t))
-    try: stdscr.addstr(0, 0, bar[:w-1], curses.color_pair(4)|curses.A_BOLD)
+    try: 
+        stdscr.addstr(1, 0, bar[:w-1], curses.color_pair(4)|curses.A_BOLD)
+    except: pass
+    
+    # Línea inferior decorativa
+    try: 
+        stdscr.addstr(2, 0, "=" * (w-1), curses.color_pair(4)|curses.A_BOLD)
     except: pass
 
 def safe_print(stdscr, y, x, txt, attr=0):

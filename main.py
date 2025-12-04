@@ -389,41 +389,80 @@ def screen_usb_interactive(stdscr):
         center(stdscr, 16, "✖ SIN CAMBIOS", curses.color_pair(3)); time.sleep(1.5); return "FAIL"
 
 def screen_auto(stdscr):
-    stdscr.clear(); draw_header(stdscr, "AUTO TESTS")
-    r=3
+    stdscr.clear()
+    draw_header(stdscr, "TESTS AUTOMÁTICOS")
+    
+    r=5
+    safe_print(stdscr, r, 4, "EJECUTANDO DIAGNÓSTICO...", curses.A_BOLD | curses.color_pair(6))
+    r+=3
+    
     # Bateria
+    safe_print(stdscr, r, 4, "• Comprobando BATERÍA...", curses.A_DIM)
+    stdscr.refresh()
     st, msg = test_battery()
     col = curses.color_pair(2 if st in ["OK","NO_BATTERY"] else 3)
-    safe_print(stdscr, r, 2, "BATERÍA:"); safe_print(stdscr, r, 12, f"{st} ({msg})", col)
-    res={"bat":{"st":st,"msg":msg}}; r+=2
+    safe_print(stdscr, r, 4, "• BATERÍA:", curses.A_BOLD)
+    safe_print(stdscr, r, 20, f"{st} ({msg})", col | curses.A_BOLD)
+    res={"bat":{"st":st,"msg":msg}}
+    r+=2
     
     # Touch
+    safe_print(stdscr, r, 4, "• Comprobando TOUCHPAD...", curses.A_DIM)
+    stdscr.refresh()
+    time.sleep(0.5)
     tp = check_touchpad()
-    safe_print(stdscr, r, 2, "TOUCHPAD:"); safe_print(stdscr, r, 12, tp, curses.color_pair(2 if tp!="NO DETECTADO" else 3))
-    res["touch"]=tp; r+=2
+    safe_print(stdscr, r, 4, "• TOUCHPAD:", curses.A_BOLD)
+    safe_print(stdscr, r, 20, tp, curses.color_pair(2 if tp!="NO DETECTADO" else 3) | curses.A_BOLD)
+    res["touch"]=tp
+    r+=2
+    stdscr.refresh()
     
     # USB Interactivo
     usb_st = screen_usb_interactive(stdscr)
-    stdscr.clear(); draw_header(stdscr, "AUTO TESTS")
-    safe_print(stdscr, 3, 2, "BATERÍA:"); safe_print(stdscr, 3, 12, f"{st} ({msg})", col)
-    safe_print(stdscr, 5, 2, "TOUCHPAD:"); safe_print(stdscr, 5, 12, tp, curses.color_pair(2 if tp!="NO DETECTADO" else 3))
+    stdscr.clear()
+    draw_header(stdscr, "TESTS AUTOMÁTICOS")
+    
+    r=5
+    safe_print(stdscr, r, 4, "RESUMEN DE DIAGNÓSTICO:", curses.A_BOLD | curses.color_pair(6))
+    r+=3
+    
+    safe_print(stdscr, r, 4, "• BATERÍA:", curses.A_BOLD)
+    safe_print(stdscr, r, 20, f"{st} ({msg})", col | curses.A_BOLD)
+    r+=2
+    
+    safe_print(stdscr, r, 4, "• TOUCHPAD:", curses.A_BOLD)
+    safe_print(stdscr, r, 20, tp, curses.color_pair(2 if tp!="NO DETECTADO" else 3) | curses.A_BOLD)
+    r+=2
+    
     col_usb = curses.color_pair(2 if usb_st=="OK" else 3)
-    safe_print(stdscr, 7, 2, "USB PORT:"); safe_print(stdscr, 7, 12, usb_st, col_usb)
-    res["usb"]=usb_st; r=9
+    safe_print(stdscr, r, 4, "• PUERTO USB:", curses.A_BOLD)
+    safe_print(stdscr, r, 20, usb_st, col_usb | curses.A_BOLD)
+    res["usb"]=usb_st
+    r+=3
     
     # Discos
-    safe_print(stdscr, r, 2, "SMART CHECK:", curses.A_BOLD); r+=1
-    real_disks = get_real_disks(); sm=[]
-    if not real_disks: safe_print(stdscr, r, 4, "No detectados."); r+=1
-    for d in real_disks:
-        s="OK"; o=run_cmd(f"smartctl -H /dev/{d['dev']}") if check_dependency("smartctl") else "SKIP"
-        if "PASSED" not in o and "OK" not in o and o!="SKIP": s="FAIL"
-        col=curses.color_pair(2 if s=="OK" else 3)
-        safe_print(stdscr, r, 4, f"[{d['dev']}] {s}", col)
-        sm.append({"dev":d['dev'],"st":s}); r+=1
+    safe_print(stdscr, r, 4, "• SMART CHECK (Discos):", curses.A_BOLD)
+    r+=2
+    real_disks = get_real_disks()
+    sm=[]
+    if not real_disks:
+        safe_print(stdscr, r, 6, "No detectados.", curses.color_pair(3))
+        r+=1
+    else:
+        for d in real_disks:
+            s="OK"
+            o=run_cmd(f"smartctl -H /dev/{d['dev']}") if check_dependency("smartctl") else "SKIP"
+            if "PASSED" not in o and "OK" not in o and o!="SKIP": s="FAIL"
+            col=curses.color_pair(2 if s=="OK" else 3)
+            safe_print(stdscr, r, 6, f"[{d['dev']}]", curses.A_BOLD)
+            safe_print(stdscr, r, 18, s, col | curses.A_BOLD)
+            sm.append({"dev":d['dev'],"st":s})
+            r+=1
     res["smart"]=sm
     
-    center(stdscr, r+1, "[ENTER]"); 
+    r+=2
+    center(stdscr, r, "[ Presiona ENTER para continuar ]", curses.color_pair(6) | curses.A_BOLD)
+    stdscr.refresh()
     while stdscr.getch() not in [10,13]: pass
     return res
 

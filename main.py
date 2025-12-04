@@ -358,35 +358,67 @@ def screen_hw_info(stdscr, hw, tech):
     while stdscr.getch() not in [10,13]: pass
 
 def screen_usb_interactive(stdscr):
-    stdscr.clear(); draw_header(stdscr, "TEST USB")
+    stdscr.clear()
+    draw_header(stdscr, "TEST PUERTO USB")
+    
     base_usb = run_cmd("lsusb").splitlines()
     count_base = len(base_usb)
     
-    center(stdscr, 6, "ESTADO: Escaneando...")
-    center(stdscr, 8, f"Dispositivos iniciales: {count_base}")
-    center(stdscr, 12, ">>> CONECTA AHORA UN RATÓN/PENDRIVE <<<", curses.color_pair(4) | curses.A_BLINK)
-    center(stdscr, 14, "[S]altar si no tienes nada")
+    center(stdscr, 6, "════════════════════════════════════", curses.A_BOLD)
+    center(stdscr, 7, "   PRUEBA DE PUERTO USB   ", curses.A_BOLD | curses.color_pair(6))
+    center(stdscr, 8, "════════════════════════════════════", curses.A_BOLD)
+    center(stdscr, 11, f"Dispositivos USB actuales: {count_base}", curses.A_DIM)
+    center(stdscr, 14, "╔═══════════════════════════════════════╗", curses.color_pair(4))
+    center(stdscr, 15, "║  CONECTA UN RATÓN O PENDRIVE AHORA   ║", curses.color_pair(4) | curses.A_BLINK | curses.A_BOLD)
+    center(stdscr, 16, "╚═══════════════════════════════════════╝", curses.color_pair(4))
+    center(stdscr, 19, "Esperando dispositivo... (15 segundos)", curses.A_DIM)
+    center(stdscr, 21, "[S] Saltar si no hay dispositivo USB", curses.color_pair(3))
     stdscr.refresh()
     stdscr.nodelay(True)
     
     start = time.time()
     detected = False
+    elapsed = 0
     
     while time.time() - start < 15:
         curr_usb = run_cmd("lsusb").splitlines()
         if len(curr_usb) > count_base:
             detected = True
             break
+        
+        # Actualizar contador
+        elapsed = int(time.time() - start)
+        remaining = 15 - elapsed
+        center(stdscr, 19, f"Esperando dispositivo... ({remaining} segundos)  ", curses.A_DIM)
+        stdscr.refresh()
+        
         try:
-            if stdscr.getch() in [ord('s'), ord('S')]: break
-        except: pass
+            if stdscr.getch() in [ord('s'), ord('S')]: 
+                break
+        except: 
+            pass
         time.sleep(0.5)
         
     stdscr.nodelay(False)
+    stdscr.clear()
+    draw_header(stdscr, "TEST PUERTO USB")
+    
     if detected:
-        center(stdscr, 16, "✔ DISPOSITIVO DETECTADO", curses.color_pair(2)); time.sleep(1.5); return "OK"
+        center(stdscr, 10, "════════════════════════════════════", curses.A_BOLD)
+        center(stdscr, 11, "  ✔  DISPOSITIVO DETECTADO  ✔  ", curses.color_pair(2) | curses.A_BOLD)
+        center(stdscr, 12, "════════════════════════════════════", curses.A_BOLD)
+        center(stdscr, 15, "Puerto USB funciona correctamente", curses.color_pair(2))
+        stdscr.refresh()
+        time.sleep(2)
+        return "OK"
     else:
-        center(stdscr, 16, "✖ SIN CAMBIOS", curses.color_pair(3)); time.sleep(1.5); return "FAIL"
+        center(stdscr, 10, "════════════════════════════════════", curses.A_BOLD)
+        center(stdscr, 11, "  ✖  NO SE DETECTÓ DISPOSITIVO  ✖  ", curses.color_pair(3) | curses.A_BOLD)
+        center(stdscr, 12, "════════════════════════════════════", curses.A_BOLD)
+        center(stdscr, 15, "No se conectó ningún dispositivo USB", curses.color_pair(3))
+        stdscr.refresh()
+        time.sleep(2)
+        return "FAIL"
 
 def screen_auto(stdscr):
     stdscr.clear()

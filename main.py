@@ -917,14 +917,14 @@ def screen_keyboard_vis(stdscr):
         except: pass
         return "FAIL"
     
-    # Layout del teclado español
+    # Layout del teclado español (sin F10-F12 y AltGr que no se detectan bien)
     keyboard_layout = [
-        ["ESC", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12"],
+        ["ESC", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9"],
         ["º", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "'", "¡", "BKSP"],
         ["TAB", "Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P", "`", "+", "ENTER"],
         ["A", "S", "D", "F", "G", "H", "J", "K", "L", "Ñ", "´", "Ç"],
-        ["<", "Z", "X", "C", "V", "B", "N", "M", ",", ".", "-"],
-        ["CTRL", "ALT", "SPACE", "ALTGR"]
+        ["Z", "X", "C", "V", "B", "N", "M", ",", ".", "-"],
+        ["CTRL", "ALT", "SPACE"]
     ]
     
     pressed_keys = set()

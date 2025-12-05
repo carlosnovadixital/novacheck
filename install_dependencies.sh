@@ -23,6 +23,9 @@ echo "========================================="
 
 apt install -y python3 python3-pip
 
+echo "Instalando pynput (para test de teclado)..."
+pip3 install pynput
+
 echo ""
 echo "========================================="
 echo "2. AUDIO (CRÍTICO)"

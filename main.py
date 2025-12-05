@@ -576,42 +576,62 @@ def play_audio_pygame(channel='both'):
     try:
         import numpy as np
         import pygame
+        import os
         
-        # Generar tono sinusoidal
-        frequency = 800
-        duration = 1.5
-        sample_rate = 44100
+        # Silenciar mensajes de pygame y ALSA
+        os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
+        os.environ['SDL_AUDIODRIVER'] = 'alsa'
         
-        t = np.linspace(0, duration, int(sample_rate * duration))
-        tone = np.sin(2 * np.pi * frequency * t)
-        tone = (tone * 32767).astype(np.int16)
+        # Redirigir stderr temporalmente para silenciar ALSA
+        import sys
+        old_stderr = sys.stderr
+        sys.stderr = open(os.devnull, 'w')
         
-        # Crear audio estéreo según canal
-        if channel == 'left':
-            left = tone
-            right = np.zeros_like(tone)
-        elif channel == 'right':
-            left = np.zeros_like(tone)
-            right = tone
-        else:
-            left = tone
-            right = tone
-        
-        stereo = np.column_stack((left, right))
-        
-        # Inicializar pygame mixer
-        pygame.mixer.init(frequency=sample_rate, size=-16, channels=2, buffer=512)
-        
-        # Crear y reproducir sonido
-        sound = pygame.sndarray.make_sound(stereo)
-        sound.play()
-        
-        # Esperar a que termine
-        while pygame.mixer.get_busy():
-            pygame.time.wait(100)
-        
-        pygame.mixer.quit()
-        return True
+        try:
+            # Generar tono sinusoidal
+            frequency = 800
+            duration = 1.5
+            sample_rate = 44100
+            
+            t = np.linspace(0, duration, int(sample_rate * duration))
+            tone = np.sin(2 * np.pi * frequency * t)
+            tone = (tone * 32767).astype(np.int16)
+            
+            # Crear audio estéreo según canal
+            if channel == 'left':
+                left = tone
+                right = np.zeros_like(tone)
+            elif channel == 'right':
+                left = np.zeros_like(tone)
+                right = tone
+            else:
+                left = tone
+                right = tone
+            
+            stereo = np.column_stack((left, right))
+            
+            # Inicializar pygame mixer con más intentos
+            try:
+                pygame.mixer.quit()  # Por si acaso
+            except:
+                pass
+            
+            pygame.mixer.init(frequency=sample_rate, size=-16, channels=2, buffer=1024, devicename='default')
+            
+            # Crear y reproducir sonido
+            sound = pygame.sndarray.make_sound(stereo)
+            sound.play()
+            
+            # Esperar a que termine
+            while pygame.mixer.get_busy():
+                pygame.time.wait(100)
+            
+            pygame.mixer.quit()
+            return True
+        finally:
+            # Restaurar stderr
+            sys.stderr.close()
+            sys.stderr = old_stderr
         
     except ImportError:
         # Fallback a sox si pygame no está disponible

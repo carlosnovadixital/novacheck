@@ -21,7 +21,10 @@ echo "========================================="
 echo "1. PYTHON Y HERRAMIENTAS BÁSICAS"
 echo "========================================="
 
-apt install -y python3 python3-pip
+apt install -y python3 python3-pip python3-numpy
+
+echo "Instalando pygame (para audio L/R)..."
+apt install -y python3-pygame
 
 echo "Instalando pynput (para test de teclado)..."
 pip3 install pynput

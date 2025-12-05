@@ -659,7 +659,7 @@ def play_test_sound():
 def screen_audio_adv(stdscr):
     res={"L":"FAIL","R":"FAIL","MIC":"FAIL"}
     
-    # Pantalla inicial - Reset audio
+    # Pantalla inicial - Reset audio y detección
     stdscr.erase()
     stdscr.refresh()
     
@@ -667,88 +667,66 @@ def screen_audio_adv(stdscr):
         stdscr.addstr(0, 0, "=" * 79, curses.color_pair(4)|curses.A_BOLD)
         stdscr.addstr(1, 0, " AUDIO CHECK ".center(79), curses.color_pair(4)|curses.A_BOLD)
         stdscr.addstr(2, 0, "=" * 79, curses.color_pair(4)|curses.A_BOLD)
-        stdscr.addstr(8, 20, "Inicializando drivers de audio...")
+        stdscr.addstr(8, 15, "Inicializando drivers de audio...")
+        stdscr.addstr(10, 15, "Detectando dispositivos...")
         stdscr.refresh()
     except: pass
     
     fix_audio_mixer()
+    
+    # Detectar dispositivos
+    devices = detect_audio_devices()
+    
+    try:
+        stdscr.addstr(12, 15, f"Dispositivos encontrados: {len(devices)}", curses.color_pair(2))
+        stdscr.refresh()
+    except: pass
+    
     time.sleep(2)
     
-    # Prueba IZQUIERDO (Left)
+    # Prueba de ALTAVOCES (simplificada - una sola prueba)
     stdscr.erase()
     stdscr.refresh()
     
     try:
         stdscr.addstr(0, 0, "=" * 79, curses.color_pair(4)|curses.A_BOLD)
-        stdscr.addstr(1, 0, " AUDIO - ALTAVOZ IZQUIERDO ".center(79), curses.color_pair(4)|curses.A_BOLD)
+        stdscr.addstr(1, 0, " AUDIO - ALTAVOCES ".center(79), curses.color_pair(4)|curses.A_BOLD)
         stdscr.addstr(2, 0, "=" * 79, curses.color_pair(4)|curses.A_BOLD)
         
+        stdscr.addstr(8, 15, "════════════════════════════════════", curses.A_BOLD)
+        stdscr.addstr(9, 15, "  PRUEBA DE ALTAVOCES  ", curses.color_pair(6) | curses.A_BOLD)
         stdscr.addstr(10, 15, "════════════════════════════════════", curses.A_BOLD)
-        stdscr.addstr(11, 15, "  ALTAVOZ IZQUIERDO (LEFT)  ", curses.color_pair(6) | curses.A_BOLD)
-        stdscr.addstr(12, 15, "════════════════════════════════════", curses.A_BOLD)
-        stdscr.addstr(15, 20, "Reproduciendo sonido...", curses.A_BLINK)
+        stdscr.addstr(13, 15, "Reproduciendo tono de prueba...")
+        stdscr.addstr(14, 15, "Probando con todos los dispositivos...", curses.A_DIM)
         stdscr.refresh()
     except: pass
     
     time.sleep(1)
     
-    # Reproducir sonido (sin output visible)
-    play_test_sound()
+    # Reproducir sonido (intentará con todos los dispositivos)
+    audio_ok = play_test_sound()
+    
+    time.sleep(1)  # Dar tiempo a que termine el sonido
     
     stdscr.erase()
     stdscr.refresh()
     
     try:
         stdscr.addstr(0, 0, "=" * 79, curses.color_pair(4)|curses.A_BOLD)
-        stdscr.addstr(1, 0, " AUDIO - ALTAVOZ IZQUIERDO ".center(79), curses.color_pair(4)|curses.A_BOLD)
+        stdscr.addstr(1, 0, " AUDIO - ALTAVOCES ".center(79), curses.color_pair(4)|curses.A_BOLD)
         stdscr.addstr(2, 0, "=" * 79, curses.color_pair(4)|curses.A_BOLD)
         
-        stdscr.addstr(10, 15, "¿Se escuchó el ALTAVOZ IZQUIERDO?", curses.A_BOLD)
-        stdscr.addstr(13, 25, "[S] SI", curses.color_pair(2) | curses.A_BOLD)
-        stdscr.addstr(15, 25, "[N] NO", curses.color_pair(3) | curses.A_BOLD)
+        stdscr.addstr(10, 15, "¿Se ESCUCHÓ algún sonido?", curses.A_BOLD)
+        stdscr.addstr(12, 15, "(Puede ser por cualquier altavoz)", curses.A_DIM)
+        stdscr.addstr(15, 25, "[S] SI - Funcionan", curses.color_pair(2) | curses.A_BOLD)
+        stdscr.addstr(17, 25, "[N] NO - No funcionan", curses.color_pair(3) | curses.A_BOLD)
         stdscr.refresh()
     except: pass
     
-    if stdscr.getch() in [ord('s'),ord('S')]: 
+    key = stdscr.getch()
+    if key in [ord('s'),ord('S')]: 
         res["L"]="OK"
-    
-    # Prueba DERECHO (Right)
-    stdscr.erase()
-    stdscr.refresh()
-    
-    try:
-        stdscr.addstr(0, 0, "=" * 79, curses.color_pair(4)|curses.A_BOLD)
-        stdscr.addstr(1, 0, " AUDIO - ALTAVOZ DERECHO ".center(79), curses.color_pair(4)|curses.A_BOLD)
-        stdscr.addstr(2, 0, "=" * 79, curses.color_pair(4)|curses.A_BOLD)
-        
-        stdscr.addstr(10, 15, "════════════════════════════════════", curses.A_BOLD)
-        stdscr.addstr(11, 15, "  ALTAVOZ DERECHO (RIGHT)  ", curses.color_pair(6) | curses.A_BOLD)
-        stdscr.addstr(12, 15, "════════════════════════════════════", curses.A_BOLD)
-        stdscr.addstr(15, 20, "Reproduciendo sonido...", curses.A_BLINK)
-        stdscr.refresh()
-    except: pass
-    
-    time.sleep(1)
-    
-    # Reproducir sonido
-    play_test_sound()
-    
-    stdscr.erase()
-    stdscr.refresh()
-    
-    try:
-        stdscr.addstr(0, 0, "=" * 79, curses.color_pair(4)|curses.A_BOLD)
-        stdscr.addstr(1, 0, " AUDIO - ALTAVOZ DERECHO ".center(79), curses.color_pair(4)|curses.A_BOLD)
-        stdscr.addstr(2, 0, "=" * 79, curses.color_pair(4)|curses.A_BOLD)
-        
-        stdscr.addstr(10, 15, "¿Se escuchó el ALTAVOZ DERECHO?", curses.A_BOLD)
-        stdscr.addstr(13, 25, "[S] SI", curses.color_pair(2) | curses.A_BOLD)
-        stdscr.addstr(15, 25, "[N] NO", curses.color_pair(3) | curses.A_BOLD)
-        stdscr.refresh()
-    except: pass
-    
-    if stdscr.getch() in [ord('s'),ord('S')]: 
-        res["R"]="OK"
+        res["R"]="OK"  # Ambos OK si se escuchó
     
     # Prueba de micrófono
     stdscr.erase()
@@ -791,7 +769,7 @@ def screen_audio_adv(stdscr):
     time.sleep(2)
     res["MIC"]=st
     
-    return "OK" if res["L"]=="OK" and res["R"]=="OK" and res["MIC"]=="OK" else "FAIL"
+    return "OK" if res["L"]=="OK" and res["MIC"]=="OK" else "FAIL"
 
 def screen_visual(stdscr):
     cols=[(curses.COLOR_RED,"ROJO"),(curses.COLOR_GREEN,"VERDE"),(curses.COLOR_BLUE,"AZUL"),(curses.COLOR_WHITE,"BLANCO")]

@@ -819,7 +819,8 @@ def map_key(k):
 
 def screen_keyboard_vis(stdscr):
     """
-    Test de teclado con layout visual simple
+    Test de teclado simplificado - sin teclas Fn problemáticas
+    Se enfoca en teclas alfanuméricas y básicas
     """
     stdscr.clear()
     h, w = stdscr.getmaxyx()
@@ -831,18 +832,17 @@ def screen_keyboard_vis(stdscr):
         stdscr.addstr(2, 0, "=" * (w-1), curses.color_pair(4)|curses.A_BOLD)
     except: pass
     
-    # Instrucciones
+    # Instrucciones - UX CONSISTENTE
     try:
-        stdscr.addstr(4, 2, "INSTRUCCIONES: Pulsa todas las teclas | [F10] para terminar", 
-                     curses.A_BOLD | curses.color_pair(6))
+        stdscr.addstr(4, 2, "INSTRUCCIONES: Pulsa todas las teclas", curses.A_BOLD | curses.color_pair(6))
+        stdscr.addstr(5, 2, "[SPACE] para terminar cuando hayas probado suficientes teclas", curses.A_DIM)
     except: pass
     
-    # Layout simplificado - matriz de teclas
+    # Layout SIMPLIFICADO - Sin teclas Fn problemáticas
     keyboard_layout = [
-        ["ESC", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12"],
-        ["`", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "=", "BKSP"],
-        ["TAB", "Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P", "[", "]", "\\"],
-        ["CAPS", "A", "S", "D", "F", "G", "H", "J", "K", "L", ";", "'", "Ñ", "ENTER"],
+        ["ESC", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "=", "BKSP"],
+        ["TAB", "Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P", "[", "]", "ENTER"],
+        ["CAPS", "A", "S", "D", "F", "G", "H", "J", "K", "L", "Ñ", ";", "'", "\\"],
         ["SHIFT", "Z", "X", "C", "V", "B", "N", "M", ",", ".", "/", "Ç"],
         ["CTRL", "ALT", "SPACE", "ALTGR"]
     ]
@@ -850,17 +850,18 @@ def screen_keyboard_vis(stdscr):
     pressed = set()
     stdscr.nodelay(True)
     stdscr.timeout(100)
+    space_count = 0  # Contador de SPACE pulsado
     
     while True:
         # Limpiar área de trabajo
-        for i in range(6, 24):
+        for i in range(7, 24):
             try:
                 stdscr.addstr(i, 0, " " * (w-1))
             except: pass
         
         # Contador
         try:
-            stdscr.addstr(6, 2, f"— TECLAS PRESIONADAS: {len(pressed)} —", 
+            stdscr.addstr(7, 2, f"— TECLAS PRESIONADAS: {len(pressed)} —", 
                          curses.color_pair(2) | curses.A_BOLD)
         except: pass
         
@@ -868,11 +869,18 @@ def screen_keyboard_vis(stdscr):
         try:
             progress = min(len(pressed), 50)
             bar = "█" * progress + "░" * (50 - progress)
-            stdscr.addstr(7, 2, f"[{bar}]")
+            stdscr.addstr(8, 2, f"[{bar}]")
         except: pass
         
+        # Info de terminación
+        if space_count > 0:
+            try:
+                stdscr.addstr(9, 2, f"Pulsa SPACE de nuevo para terminar ({space_count}/2)", 
+                             curses.color_pair(6) | curses.A_BLINK)
+            except: pass
+        
         # Dibujar teclado
-        start_y = 9
+        start_y = 11
         for row_idx, row in enumerate(keyboard_layout):
             x = 2
             y = start_y + row_idx * 2
@@ -897,36 +905,20 @@ def screen_keyboard_vis(stdscr):
             k = -1
         
         if k != -1:
-            # F10 para terminar
-            if k == curses.KEY_F10 or k == 276:  # F10
-                break
+            # SPACE para terminar (doble confirmación)
+            if k == 32:  # SPACE
+                space_count += 1
+                if space_count >= 2:
+                    break
+            else:
+                space_count = 0  # Reset si pulsa otra tecla
             
             # Mapear tecla
             char = map_key(k)
             
             # Teclas especiales adicionales
-            if k == curses.KEY_F1: char = "F1"
-            elif k == curses.KEY_F2: char = "F2"
-            elif k == curses.KEY_F3: char = "F3"
-            elif k == curses.KEY_F4: char = "F4"
-            elif k == curses.KEY_F5: char = "F5"
-            elif k == curses.KEY_F6: char = "F6"
-            elif k == curses.KEY_F7: char = "F7"
-            elif k == curses.KEY_F8: char = "F8"
-            elif k == curses.KEY_F9: char = "F9"
-            elif k == curses.KEY_F11: char = "F11"
-            elif k == curses.KEY_F12: char = "F12"
-            elif k == 27: char = "ESC"
-            elif k == 260: char = "LEFT"
-            elif k == 261: char = "RIGHT"
-            elif k == 259: char = "UP"
-            elif k == 258: char = "DOWN"
-            elif k == 339: char = "PGUP"
-            elif k == 338: char = "PGDN"
-            elif k == 262: char = "HOME"
-            elif k == 360: char = "END"
-            elif k == 330: char = "DEL"
-            elif k == 331: char = "INS"
+            if k == 27: char = "ESC"
+            elif k == 258: char = "CAPS"  # A veces detecta como esta
             
             # Agregar a presionadas
             if char:
@@ -936,7 +928,7 @@ def screen_keyboard_vis(stdscr):
     
     stdscr.nodelay(False)
     
-    # Resumen
+    # Resumen - pasar automáticamente si hay suficientes teclas
     stdscr.clear()
     try:
         stdscr.addstr(0, 0, "=" * (w-1), curses.color_pair(4)|curses.A_BOLD)
@@ -947,16 +939,17 @@ def screen_keyboard_vis(stdscr):
         stdscr.addstr(9, 20, f"  TOTAL: {len(pressed)} TECLAS  ", curses.color_pair(2) | curses.A_BOLD)
         stdscr.addstr(10, 20, "════════════════════════════════════════")
         
-        if len(pressed) >= 30:
+        # Umbral más bajo - solo 25 teclas para pasar (más realista)
+        if len(pressed) >= 25:
             stdscr.addstr(13, 30, "✓ TEST PASADO", curses.color_pair(2) | curses.A_BOLD)
             result = "OK"
         else:
             stdscr.addstr(13, 25, "✗ Pocas teclas detectadas", curses.color_pair(3) | curses.A_BOLD)
             result = "FAIL"
         
-        stdscr.addstr(16, 20, "Presiona cualquier tecla para continuar...")
+        stdscr.addstr(16, 20, "Continuando automáticamente...", curses.A_DIM)
         stdscr.refresh()
-        stdscr.getch()
+        time.sleep(2)  # Pasar automáticamente
     except: pass
     
     return result

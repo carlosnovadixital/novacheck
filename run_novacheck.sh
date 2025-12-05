@@ -20,13 +20,18 @@ fi
 echo "✓ Python 3 encontrado"
 
 # Verificar pynput (CRÍTICO para test de teclado)
-if python3 -c "import pynput" 2>/dev/null; then
-    echo "✓ pynput instalado correctamente"
+# Nota: Las verificaciones de import fallarán sin X display
+# pero los módulos estarán instalados correctamente
+echo "Verificando dependencias críticas instaladas..."
+
+# Verificar que los paquetes estén físicamente instalados
+if python3 -m pip show pynput &>/dev/null; then
+    echo "✓ pynput instalado"
 else
     echo "✗ pynput no encontrado"
     echo "  Instalando pynput..."
-    pip3 install pynput
-    if python3 -c "import pynput" 2>/dev/null; then
+    python3 -m pip install --break-system-packages pynput
+    if python3 -m pip show pynput &>/dev/null; then
         echo "✓ pynput instalado"
     else
         echo "✗ ERROR: No se pudo instalar pynput"
@@ -35,21 +40,21 @@ else
 fi
 
 # Verificar pygame
-if python3 -c "import pygame" 2>/dev/null; then
-    echo "✓ pygame instalado correctamente"
+if python3 -m pip show pygame &>/dev/null; then
+    echo "✓ pygame instalado"
 else
     echo "✗ pygame no encontrado"
     echo "  Instalando pygame..."
-    pip3 install pygame
+    python3 -m pip install --break-system-packages pygame
 fi
 
 # Verificar numpy
-if python3 -c "import numpy" 2>/dev/null; then
-    echo "✓ numpy instalado correctamente"
+if python3 -m pip show numpy &>/dev/null; then
+    echo "✓ numpy instalado"
 else
     echo "✗ numpy no encontrado"
     echo "  Instalando numpy..."
-    pip3 install numpy
+    python3 -m pip install --break-system-packages numpy
 fi
 
 echo ""

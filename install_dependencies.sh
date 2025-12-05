@@ -107,7 +107,7 @@ apt install -y wireless-tools net-tools iw
 
 echo ""
 echo "========================================="
-echo "5. UTILIDADES DEL SISTEMA"
+echo "6. UTILIDADES DEL SISTEMA"
 echo "========================================="
 
 # Para borrado seguro de discos

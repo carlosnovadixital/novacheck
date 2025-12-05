@@ -21,13 +21,35 @@ echo "========================================="
 echo "1. PYTHON Y HERRAMIENTAS BÁSICAS"
 echo "========================================="
 
-apt install -y python3 python3-pip python3-numpy
+apt install -y python3 python3-pip python3-venv python3-numpy
 
 echo "Instalando pygame (para audio L/R)..."
 apt install -y python3-pygame
 
+echo ""
+echo "========================================="
+echo "2. CONFIGURANDO VIRTUALENV"
+echo "========================================="
+
+VENV_PATH="/home/novacheck/venv"
+
+if [ ! -d "$VENV_PATH" ]; then
+    echo "Creando virtualenv en $VENV_PATH..."
+    python3 -m venv "$VENV_PATH"
+fi
+
+echo "Activando virtualenv..."
+source "$VENV_PATH/bin/activate"
+
 echo "Instalando pynput (para test de teclado)..."
+pip3 install --upgrade pip
 pip3 install pynput
+
+echo "Instalando pygame y numpy en virtualenv..."
+pip3 install pygame numpy
+
+echo "✓ Virtualenv configurado correctamente"
+deactivate
 
 echo ""
 echo "========================================="

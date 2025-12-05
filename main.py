@@ -311,12 +311,34 @@ def screen_wifi_logic(stdscr):
                 else: center(stdscr,14,"ERROR CLAVE", curses.color_pair(3)); time.sleep(1); break
 
 def screen_tech(stdscr):
-    stdscr.clear(); draw_header(stdscr, "IDENTIFICACIÓN")
-    center(stdscr, 8, "Nombre del Técnico:"); curses.echo(); curses.curs_set(1)
-    h, w = stdscr.getmaxyx(); stdscr.move(10, w//2 - 10)
-    try: name = stdscr.getstr().decode()
-    except: name = "Unknown"
-    curses.noecho(); curses.curs_set(0)
+    stdscr.clear()
+    draw_header(stdscr, "IDENTIFICACIÓN TÉCNICO")
+    h, w = stdscr.getmaxyx()
+    
+    # Título más grande
+    center(stdscr, 8, "═══════════════════════════════════════", curses.A_BOLD)
+    center(stdscr, 9, "  IDENTIFICACIÓN DEL TÉCNICO  ", curses.A_BOLD | curses.color_pair(6))
+    center(stdscr, 10, "═══════════════════════════════════════", curses.A_BOLD)
+    
+    # Prompt en línea separada
+    center(stdscr, 14, "Por favor, escribe tu nombre:", curses.A_BOLD)
+    
+    # Input en la línea siguiente, centrado
+    curses.echo()
+    curses.curs_set(1)
+    stdscr.move(17, w//2 - 15)
+    safe_print(stdscr, 17, w//2 - 15, ">> ", curses.A_BOLD)
+    stdscr.move(17, w//2 - 12)
+    stdscr.refresh()
+    
+    try: 
+        name = stdscr.getstr().decode().strip()
+    except: 
+        name = "Unknown"
+    
+    curses.noecho()
+    curses.curs_set(0)
+    
     return name if name else "Anónimo"
 
 def screen_hw_info(stdscr, hw, tech):

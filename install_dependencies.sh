@@ -70,7 +70,7 @@ apt install -y pulseaudio pulseaudio-utils
 
 echo ""
 echo "========================================="
-echo "3. HERRAMIENTAS DE HARDWARE"
+echo "4. HERRAMIENTAS DE HARDWARE"
 echo "========================================="
 
 # smartmontools - Para smartctl (test de discos SMART)

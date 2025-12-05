@@ -690,6 +690,10 @@ def play_simple_audio_test_fallback():
 def screen_audio_adv(stdscr):
     res={"L":"FAIL","R":"FAIL","MIC":"FAIL"}
     
+    # Matar pulseaudio para evitar conflictos con ALSA
+    subprocess.run("pulseaudio -k 2>/dev/null", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    time.sleep(1)
+    
     # Inicializar audio silenciosamente
     fix_audio_mixer()
     time.sleep(1)

@@ -568,15 +568,64 @@ def detect_audio_devices():
     
     return devices
 
-def play_simple_audio_test():
+def play_audio_pygame(channel='both'):
     """
-    Reproduce audio de forma SIMPLE usando el método que funcionaba antes
+    Reproduce audio usando pygame con control preciso de canales L/R
+    channel: 'left', 'right', 'both'
     """
-    # Generar WAV simple con sox
+    try:
+        import numpy as np
+        import pygame
+        
+        # Generar tono sinusoidal
+        frequency = 800
+        duration = 1.5
+        sample_rate = 44100
+        
+        t = np.linspace(0, duration, int(sample_rate * duration))
+        tone = np.sin(2 * np.pi * frequency * t)
+        tone = (tone * 32767).astype(np.int16)
+        
+        # Crear audio estéreo según canal
+        if channel == 'left':
+            left = tone
+            right = np.zeros_like(tone)
+        elif channel == 'right':
+            left = np.zeros_like(tone)
+            right = tone
+        else:
+            left = tone
+            right = tone
+        
+        stereo = np.column_stack((left, right))
+        
+        # Inicializar pygame mixer
+        pygame.mixer.init(frequency=sample_rate, size=-16, channels=2, buffer=512)
+        
+        # Crear y reproducir sonido
+        sound = pygame.sndarray.make_sound(stereo)
+        sound.play()
+        
+        # Esperar a que termine
+        while pygame.mixer.get_busy():
+            pygame.time.wait(100)
+        
+        pygame.mixer.quit()
+        return True
+        
+    except ImportError:
+        # Fallback a sox si pygame no está disponible
+        return play_simple_audio_test_fallback()
+    except Exception as e:
+        return False
+
+def play_simple_audio_test_fallback():
+    """
+    Fallback usando sox si pygame no está disponible
+    """
     test_file = "/tmp/test_audio.wav"
     
     if shutil.which("sox"):
-        # Generar archivo WAV estéreo simple
         subprocess.run(
             f"sox -n -r 44100 -c 2 {test_file} synth 1.5 sine 800 2>/dev/null",
             shell=True,
@@ -587,10 +636,8 @@ def play_simple_audio_test():
     if not os.path.exists(test_file):
         return False
     
-    # Detectar dispositivos
     devices = detect_audio_devices()
     
-    # Probar con cada dispositivo
     for dev in devices:
         for dev_name in [dev['plughw'], dev['hw']]:
             result = subprocess.run(
@@ -600,14 +647,12 @@ def play_simple_audio_test():
                 stderr=subprocess.DEVNULL
             )
             if result.returncode == 0:
-                # Funcionó, limpiar y salir
                 try:
                     os.remove(test_file)
                 except:
                     pass
                 return True
     
-    # Probar con default
     result = subprocess.run(
         f"aplay -q {test_file} 2>/dev/null",
         shell=True,
@@ -615,7 +660,6 @@ def play_simple_audio_test():
         stderr=subprocess.DEVNULL
     )
     
-    # Limpiar
     try:
         os.remove(test_file)
     except:

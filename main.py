@@ -758,9 +758,14 @@ def screen_visual(stdscr):
     center(stdscr, 12, "════════════════════════════════", curses.A_BOLD)
     center(stdscr, 15, "Se mostrarán 4 colores en pantalla COMPLETA", curses.color_pair(6))
     center(stdscr, 17, "Busca píxeles muertos, manchas o defectos", curses.A_BOLD)
-    center(stdscr, 20, "Presiona cualquier tecla para comenzar", curses.A_DIM)
+    center(stdscr, 20, "[SPACE / ENTER] para comenzar", curses.A_DIM)
     stdscr.refresh()
-    stdscr.getch()
+    
+    # Esperar SPACE o ENTER
+    while True:
+        k = stdscr.getch()
+        if k in [32, 10, 13]:  # SPACE, ENTER
+            break
     
     # Mostrar cada color SIN TEXTO (pantalla limpia para ver defectos)
     for c,n in cols:
@@ -769,9 +774,14 @@ def screen_visual(stdscr):
         stdscr.erase()  # Limpiar TODO incluyendo background
         stdscr.refresh()
         time.sleep(0.5)
-        stdscr.getch()
+        
+        # Siguiente color con SPACE/ENTER
+        while True:
+            k = stdscr.getch()
+            if k in [32, 10, 13]:
+                break
     
-    # Restaurar y preguntar resultado
+    # Restaurar y preguntar resultado - UX CONSISTENTE
     stdscr.bkgd(' ',curses.color_pair(1))
     stdscr.clear()
     draw_header(stdscr,"TEST VISUAL - RESULTADO")
@@ -779,11 +789,12 @@ def screen_visual(stdscr):
     center(stdscr, 11, "  ¿HAY DEFECTOS EN LA PANTALLA?  ", curses.A_BOLD)
     center(stdscr, 12, "════════════════════════════════════", curses.A_BOLD)
     center(stdscr, 15, "(Píxeles muertos, manchas, líneas, etc.)", curses.A_DIM)
-    center(stdscr, 18, "[N] NO - Todo perfecto", curses.color_pair(2) | curses.A_BOLD)
-    center(stdscr, 20, "[S] SÍ - Hay defectos", curses.color_pair(3) | curses.A_BOLD)
+    center(stdscr, 18, "[SPACE / ENTER] = NO - Todo perfecto", curses.color_pair(2) | curses.A_BOLD)
+    center(stdscr, 20, "[N] = SÍ - Hay defectos", curses.color_pair(3) | curses.A_BOLD)
     stdscr.refresh()
     
-    return "OK" if stdscr.getch() in [ord('n'),ord('N')] else "FAIL"
+    key = stdscr.getch()
+    return "OK" if key in [32, 10, 13] else "FAIL"
 
 def map_key(k):
     # Teclas especiales comunes

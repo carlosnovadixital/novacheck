@@ -564,24 +564,48 @@ def detect_audio_devices():
     
     return devices
 
-def generate_test_sound():
-    """Genera un archivo de audio de prueba"""
-    test_file = "/tmp/test_beep.wav"
+def generate_test_sound_channel(channel='both'):
+    """
+    Genera un archivo de audio de prueba para un canal específico
+    channel: 'left', 'right', 'both'
+    """
+    if channel == 'left':
+        test_file = "/tmp/test_left.wav"
+    elif channel == 'right':
+        test_file = "/tmp/test_right.wav"
+    else:
+        test_file = "/tmp/test_both.wav"
     
-    # Método 1: sox (mejor calidad)
+    # Método 1: sox (mejor calidad y control de canales)
     if shutil.which("sox"):
+        if channel == 'left':
+            # Solo canal izquierdo
+            cmd = f"sox -n -r 44100 -c 2 {test_file} synth 1.5 sine 800 remix 1 0"
+        elif channel == 'right':
+            # Solo canal derecho
+            cmd = f"sox -n -r 44100 -c 2 {test_file} synth 1.5 sine 800 remix 0 1"
+        else:
+            # Ambos canales
+            cmd = f"sox -n -r 44100 -c 2 {test_file} synth 1.5 sine 800"
+        
         result = subprocess.run(
-            f"sox -n -r 44100 -c 2 {test_file} synth 1.5 sine 800 vol 0.5",
-            shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+            cmd,
+            shell=True, 
+            stdout=subprocess.DEVNULL, 
+            stderr=subprocess.DEVNULL,
+            timeout=5
         )
         if result.returncode == 0 and os.path.exists(test_file):
             return test_file
     
-    # Método 2: ffmpeg
+    # Método 2: ffmpeg (fallback)
     if shutil.which("ffmpeg"):
         result = subprocess.run(
-            f"ffmpeg -f lavfi -i 'sine=frequency=800:duration=1.5' -y {test_file}",
-            shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+            f"ffmpeg -f lavfi -i 'sine=frequency=800:duration=1.5' -ac 2 -y {test_file} 2>/dev/null",
+            shell=True, 
+            stdout=subprocess.DEVNULL, 
+            stderr=subprocess.DEVNULL,
+            timeout=5
         )
         if result.returncode == 0 and os.path.exists(test_file):
             return test_file

@@ -1051,31 +1051,186 @@ def screen_wipe(stdscr):
     subprocess.run(f"shred -n 1 -z /dev/{tgt}", shell=True, stderr=subprocess.DEVNULL)
     return "OK"
 
+def show_navigation_help(stdscr):
+    """Muestra ayuda de navegación en la parte inferior"""
+    h, w = stdscr.getmaxyx()
+    try:
+        help_text = "[SPACE/ENTER]=Siguiente | [B]=Atrás | [R]=Repetir | [Q]=Salir"
+        stdscr.addstr(h-1, 2, help_text, curses.color_pair(6) | curses.A_DIM)
+    except: pass
+
+def wait_for_navigation(stdscr):
+    """
+    Espera input de navegación del usuario
+    Retorna: 'next', 'back', 'repeat', 'quit'
+    """
+    show_navigation_help(stdscr)
+    stdscr.refresh()
+    
+    while True:
+        key = stdscr.getch()
+        
+        # Siguiente (SPACE o ENTER)
+        if key in [32, 10, 13]:
+            return 'next'
+        
+        # Atrás (B)
+        elif key in [ord('b'), ord('B')]:
+            return 'back'
+        
+        # Repetir (R)
+        elif key in [ord('r'), ord('R')]:
+            return 'repeat'
+        
+        # Salir (Q)
+        elif key in [ord('q'), ord('Q')]:
+            return 'quit'
+
 def main(stdscr):
     stdscr = init_ui()
     try: 
         if int(datetime.datetime.now().year)<2024: subprocess.run('date -s "2025-01-01 12:00:00"',shell=True)
     except: pass
     
-    screen_wifi_logic(stdscr)
-    tech = screen_tech(stdscr)
-    hw = get_hw()
+    # Datos persistentes
+    tech = None
+    hw = None
+    results = {
+        'auto': None,
+        'audio': None,
+        'visual': None,
+        'keyboard': None,
+        'wipe': None
+    }
     
-    screen_hw_info(stdscr, hw, tech)
+    # Definir secuencia de pruebas
+    tests = [
+        {'name': 'WiFi', 'func': lambda: screen_wifi_logic(stdscr), 'skippable': True},
+        {'name': 'Técnico', 'func': lambda: screen_tech(stdscr), 'result_var': 'tech'},
+        {'name': 'Hardware', 'func': lambda: (get_hw(), screen_hw_info(stdscr, hw, tech))[0], 'result_var': 'hw'},
+        {'name': 'Auto-Tests', 'func': lambda: screen_auto(stdscr), 'result_key': 'auto'},
+        {'name': 'Audio', 'func': lambda: screen_audio_adv(stdscr), 'result_key': 'audio'},
+        {'name': 'Visual', 'func': lambda: screen_visual(stdscr), 'result_key': 'visual'},
+        {'name': 'Teclado', 'func': lambda: screen_keyboard_vis(stdscr), 'result_key': 'keyboard'},
+        {'name': 'Wipe', 'func': lambda: screen_wipe(stdscr), 'result_key': 'wipe'},
+    ]
     
-    ra = screen_auto(stdscr)
-    rs = screen_audio_adv(stdscr)
-    rv = screen_visual(stdscr)
-    rk = screen_keyboard_vis(stdscr)
-    rw = screen_wipe(stdscr)
+    current_test = 0
     
-    final = "PASS" if rs=="OK" and rw!="FAIL" and rv!="FAIL" and rk=="OK" else "FAIL"
-    for d in ra.get("smart",[]):
-        if d["st"]=="FAIL": final="FAIL"
+    while current_test < len(tests):
+        test = tests[current_test]
         
-    ok, msg = send_to_server(hw, final, {"auto":ra,"aud":rs,"vis":rv,"kbd":rk,"wipe":rw}, rw, tech)
+        try:
+            # Ejecutar prueba
+            if test['name'] == 'WiFi':
+                screen_wifi_logic(stdscr)
+                
+            elif test['name'] == 'Técnico':
+                tech = screen_tech(stdscr)
+                
+            elif test['name'] == 'Hardware':
+                hw = get_hw()
+                screen_hw_info(stdscr, hw, tech)
+                
+            elif test['name'] == 'Auto-Tests':
+                results['auto'] = screen_auto(stdscr)
+                
+            elif test['name'] == 'Audio':
+                results['audio'] = screen_audio_adv(stdscr)
+                
+            elif test['name'] == 'Visual':
+                results['visual'] = screen_visual(stdscr)
+                
+            elif test['name'] == 'Teclado':
+                results['keyboard'] = screen_keyboard_vis(stdscr)
+                
+            elif test['name'] == 'Wipe':
+                # Mostrar navegación antes de wipe
+                stdscr.clear()
+                draw_header(stdscr, "NAVEGACIÓN")
+                try:
+                    stdscr.addstr(10, 10, "¿Deseas ejecutar el borrado de disco (WIPE)?", curses.A_BOLD)
+                    stdscr.addstr(12, 10, "[SPACE/ENTER] = Ejecutar WIPE")
+                    stdscr.addstr(13, 10, "[B] = Volver atrás (saltar WIPE)")
+                    stdscr.addstr(14, 10, "[N] = Saltar WIPE y continuar")
+                    stdscr.refresh()
+                except: pass
+                
+                action = wait_for_navigation(stdscr)
+                
+                if action == 'back':
+                    current_test -= 1
+                    continue
+                elif action == 'next':
+                    results['wipe'] = "SKIP"
+                    current_test += 1
+                    continue
+                else:
+                    results['wipe'] = screen_wipe(stdscr)
+            
+            # Mostrar navegación después de la prueba (excepto para algunas)
+            if test['name'] not in ['WiFi', 'Técnico', 'Hardware']:
+                stdscr.clear()
+                draw_header(stdscr, f"{test['name']} - COMPLETADO")
+                
+                try:
+                    stdscr.addstr(10, 10, f"Prueba de {test['name']} completada", curses.A_BOLD)
+                    stdscr.addstr(12, 10, "[SPACE/ENTER] = Siguiente prueba", curses.color_pair(2))
+                    stdscr.addstr(13, 10, "[B] = Volver atrás", curses.color_pair(6))
+                    stdscr.addstr(14, 10, "[R] = Repetir esta prueba", curses.color_pair(6))
+                    stdscr.refresh()
+                except: pass
+                
+                action = wait_for_navigation(stdscr)
+                
+                if action == 'back':
+                    current_test -= 1
+                    continue
+                elif action == 'repeat':
+                    continue  # No incrementar current_test
+                elif action == 'quit':
+                    break
+            
+            # Avanzar a siguiente prueba
+            current_test += 1
+            
+        except Exception as e:
+            # Error en prueba, mostrar y permitir navegación
+            stdscr.clear()
+            try:
+                stdscr.addstr(10, 10, f"Error en {test['name']}: {str(e)}", curses.color_pair(3))
+                stdscr.addstr(12, 10, "[SPACE/ENTER] = Continuar")
+                stdscr.addstr(13, 10, "[B] = Volver atrás")
+                stdscr.addstr(14, 10, "[R] = Repetir")
+                stdscr.refresh()
+            except: pass
+            
+            action = wait_for_navigation(stdscr)
+            
+            if action == 'back':
+                current_test -= 1
+            elif action == 'repeat':
+                pass  # No cambiar current_test
+            else:
+                current_test += 1
     
-    stdscr.clear(); draw_header(stdscr, "INFORME FINAL")
+    # Calcular resultado final
+    final = "PASS"
+    if results['audio'] != "OK": final = "FAIL"
+    if results['visual'] == "FAIL": final = "FAIL"
+    if results['keyboard'] != "OK": final = "FAIL"
+    if results['wipe'] == "FAIL": final = "FAIL"
+    if results['auto']:
+        for d in results['auto'].get("smart", []):
+            if d["st"] == "FAIL": 
+                final = "FAIL"
+    
+    # Enviar a servidor
+    ok, msg = send_to_server(hw, final, results, results['wipe'], tech)
+    
+    # Pantalla final
+    stdscr.clear()
+    draw_header(stdscr, "INFORME FINAL")
     r=4
     safe_print(stdscr, r, 2, f"RESULTADO: {final}", curses.color_pair(2 if final=="PASS" else 3)); r+=2
     safe_print(stdscr, r, 2, f"SERVIDOR: {'ENVIADO' if ok else msg}", curses.color_pair(2 if ok else 3)); r+=2
@@ -1085,8 +1240,9 @@ def main(stdscr):
             qr = subprocess.run(["qrencode","-t","ASCII",f"{hw['serial']}|{final}"],capture_output=True,text=True).stdout.splitlines()
             for l in qr: safe_print(stdscr, r, 4, l); r+=1
         except: pass
-        
-    h,w=stdscr.getmaxyx(); safe_print(stdscr, h-1, 2, "[Q] Apagar")
+    
+    h,w=stdscr.getmaxyx()
+    safe_print(stdscr, h-1, 2, "[Q] Apagar")
     while stdscr.getch() not in [ord('q'),ord('Q')]: pass
     os.system("poweroff")
 

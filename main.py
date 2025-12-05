@@ -530,28 +530,130 @@ def screen_auto(stdscr):
     while stdscr.getch() not in [10,13]: pass
     return res
 
-def play_test_sound():
-    """Genera y reproduce un tono de prueba sin mostrar output"""
-    # Generar archivo WAV de prueba con sox o usar beep
+def detect_audio_devices():
+    """Detecta todos los dispositivos de audio disponibles"""
+    devices = []
+    
+    # Obtener lista de dispositivos de reproducción
+    output = run_cmd("aplay -l 2>/dev/null")
+    
+    if not output:
+        # Fallback: intentar con pactl si está disponible
+        output = run_cmd("pactl list short sinks 2>/dev/null")
+    
+    # Parsear dispositivos de aplay -l
+    # Formato: card X: ... device Y: ...
+    import re
+    for line in output.splitlines():
+        match = re.search(r'card (\d+):.*device (\d+):', line)
+        if match:
+            card = match.group(1)
+            device = match.group(2)
+            devices.append({
+                'hw': f"hw:{card},{device}",
+                'plughw': f"plughw:{card},{device}"
+            })
+    
+    # Si no encontramos nada, usar defaults
+    if not devices:
+        devices = [
+            {'hw': 'hw:0,0', 'plughw': 'plughw:0,0'},
+            {'hw': 'hw:1,0', 'plughw': 'plughw:1,0'},
+            {'hw': 'default', 'plughw': 'default'}
+        ]
+    
+    return devices
+
+def generate_test_sound():
+    """Genera un archivo de audio de prueba"""
     test_file = "/tmp/test_beep.wav"
     
-    # Intentar generar con sox
+    # Método 1: sox (mejor calidad)
     if shutil.which("sox"):
-        subprocess.run(f"sox -n {test_file} synth 1 sine 800", 
-                      shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    else:
-        # Fallback: usar speaker-test pero en background y capturado
-        subprocess.run("(speaker-test -t sine -f 800 -l 1 >/dev/null 2>&1) &", 
-                      shell=True)
+        result = subprocess.run(
+            f"sox -n -r 44100 -c 2 {test_file} synth 1.5 sine 800 vol 0.5",
+            shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+        )
+        if result.returncode == 0 and os.path.exists(test_file):
+            return test_file
+    
+    # Método 2: ffmpeg
+    if shutil.which("ffmpeg"):
+        result = subprocess.run(
+            f"ffmpeg -f lavfi -i 'sine=frequency=800:duration=1.5' -y {test_file}",
+            shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+        )
+        if result.returncode == 0 and os.path.exists(test_file):
+            return test_file
+    
+    return None
+
+def play_test_sound():
+    """
+    Reproduce un tono de prueba usando el mejor método disponible
+    Prueba con todos los dispositivos hasta encontrar uno que funcione
+    """
+    # Generar archivo de prueba
+    test_file = generate_test_sound()
+    
+    # Obtener dispositivos disponibles
+    devices = detect_audio_devices()
+    
+    # Método 1: Intentar con aplay usando cada dispositivo
+    if test_file and os.path.exists(test_file):
+        for dev in devices:
+            for dev_name in [dev['plughw'], dev['hw']]:
+                result = subprocess.run(
+                    f"aplay -q -D {dev_name} {test_file}",
+                    shell=True, 
+                    stdout=subprocess.DEVNULL, 
+                    stderr=subprocess.DEVNULL,
+                    timeout=5
+                )
+                if result.returncode == 0:
+                    if os.path.exists(test_file):
+                        os.remove(test_file)
+                    return True
+        
+        # Limpiar archivo
+        if os.path.exists(test_file):
+            os.remove(test_file)
+    
+    # Método 2: paplay (PulseAudio)
+    if test_file and shutil.which("paplay"):
+        result = subprocess.run(
+            f"paplay {test_file}",
+            shell=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            timeout=5
+        )
+        if result.returncode == 0:
+            return True
+    
+    # Método 3: speaker-test con cada dispositivo
+    for dev in devices:
+        for dev_name in [dev['plughw'], dev['hw']]:
+            # Ejecutar speaker-test y capturar TODO el output
+            result = subprocess.run(
+                f"timeout 3 speaker-test -D {dev_name} -t sine -f 800 -l 1 -c 2 >/dev/null 2>&1",
+                shell=True
+            )
+            # Si no dio timeout, probablemente funcionó
+            if result.returncode != 124:  # 124 es código de timeout
+                time.sleep(2)  # Dar tiempo a que suene
+                return True
+    
+    # Método 4: speaker-test con default
+    result = subprocess.run(
+        "timeout 3 speaker-test -t sine -f 800 -l 1 >/dev/null 2>&1",
+        shell=True
+    )
+    if result.returncode != 124:
         time.sleep(2)
         return True
     
-    # Reproducir con aplay (silencioso)
-    if os.path.exists(test_file):
-        subprocess.run(f"aplay -q {test_file}", 
-                      shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        os.remove(test_file)
-        return True
+    # Si todo falla, al menos intentamos
     return False
 
 def screen_audio_adv(stdscr):

@@ -568,121 +568,60 @@ def detect_audio_devices():
     
     return devices
 
-def generate_test_sound_channel(channel='both'):
+def play_simple_audio_test():
     """
-    Genera un archivo de audio de prueba para un canal específico
-    channel: 'left', 'right', 'both'
+    Reproduce audio de forma SIMPLE usando el método que funcionaba antes
     """
-    if channel == 'left':
-        test_file = "/tmp/test_left.wav"
-    elif channel == 'right':
-        test_file = "/tmp/test_right.wav"
-    else:
-        test_file = "/tmp/test_both.wav"
+    # Generar WAV simple con sox
+    test_file = "/tmp/test_audio.wav"
     
-    # Método 1: sox (mejor calidad y control de canales)
     if shutil.which("sox"):
-        if channel == 'left':
-            # Solo canal izquierdo
-            cmd = f"sox -n -r 44100 -c 2 {test_file} synth 1.5 sine 800 remix 1 0"
-        elif channel == 'right':
-            # Solo canal derecho
-            cmd = f"sox -n -r 44100 -c 2 {test_file} synth 1.5 sine 800 remix 0 1"
-        else:
-            # Ambos canales
-            cmd = f"sox -n -r 44100 -c 2 {test_file} synth 1.5 sine 800"
-        
-        result = subprocess.run(
-            cmd,
-            shell=True, 
-            stdout=subprocess.DEVNULL, 
-            stderr=subprocess.DEVNULL,
-            timeout=5
+        # Generar archivo WAV estéreo simple
+        subprocess.run(
+            f"sox -n -r 44100 -c 2 {test_file} synth 1.5 sine 800 2>/dev/null",
+            shell=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
         )
-        if result.returncode == 0 and os.path.exists(test_file):
-            return test_file
     
-    # Método 2: ffmpeg (fallback)
-    if shutil.which("ffmpeg"):
-        result = subprocess.run(
-            f"ffmpeg -f lavfi -i 'sine=frequency=800:duration=1.5' -ac 2 -y {test_file} 2>/dev/null",
-            shell=True, 
-            stdout=subprocess.DEVNULL, 
-            stderr=subprocess.DEVNULL,
-            timeout=5
-        )
-        if result.returncode == 0 and os.path.exists(test_file):
-            return test_file
-    
-    return None
-
-def play_test_sound_channel(channel='both'):
-    """
-    Reproduce un tono de prueba en un canal específico
-    channel: 'left', 'right', 'both'
-    Usa SOLO métodos silenciosos para evitar errores en pantalla
-    EJECUTA EN SUBSHELL para evitar output en terminal actual
-    """
-    # Generar archivo de prueba para el canal específico
-    test_file = generate_test_sound_channel(channel)
-    
-    if not test_file or not os.path.exists(test_file):
+    if not os.path.exists(test_file):
         return False
     
-    # Obtener dispositivos disponibles
+    # Detectar dispositivos
     devices = detect_audio_devices()
     
-    success = False
-    
-    # Método 1: aplay en subshell completamente aislado
+    # Probar con cada dispositivo
     for dev in devices:
         for dev_name in [dev['plughw'], dev['hw']]:
-            try:
-                # Usar subshell con redirección completa
-                cmd = f"(aplay -q -D {dev_name} {test_file} >/dev/null 2>&1) &"
-                subprocess.Popen(
-                    cmd,
-                    shell=True,
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL,
-                    stdin=subprocess.DEVNULL,
-                    close_fds=True
-                )
-                # Esperar a que termine
-                time.sleep(2)
-                success = True
-                break
-            except:
-                continue
-        if success:
-            break
-    
-    # Método 2: paplay en subshell
-    if not success and shutil.which("paplay"):
-        try:
-            cmd = f"(paplay {test_file} >/dev/null 2>&1) &"
-            subprocess.Popen(
-                cmd,
+            result = subprocess.run(
+                f"aplay -q -D {dev_name} {test_file} 2>/dev/null",
                 shell=True,
                 stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-                stdin=subprocess.DEVNULL,
-                close_fds=True
+                stderr=subprocess.DEVNULL
             )
-            time.sleep(2)
-            success = True
-        except:
-            pass
+            if result.returncode == 0:
+                # Funcionó, limpiar y salir
+                try:
+                    os.remove(test_file)
+                except:
+                    pass
+                return True
     
-    # Limpiar archivo temporal
-    time.sleep(1)  # Esperar un poco antes de borrar
-    if os.path.exists(test_file):
-        try:
-            os.remove(test_file)
-        except:
-            pass
+    # Probar con default
+    result = subprocess.run(
+        f"aplay -q {test_file} 2>/dev/null",
+        shell=True,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL
+    )
     
-    return success
+    # Limpiar
+    try:
+        os.remove(test_file)
+    except:
+        pass
+    
+    return result.returncode == 0
 
 def screen_audio_adv(stdscr):
     res={"L":"FAIL","R":"FAIL","MIC":"FAIL"}

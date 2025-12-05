@@ -53,7 +53,7 @@ deactivate
 
 echo ""
 echo "========================================="
-echo "2. AUDIO (CRÍTICO)"
+echo "3. AUDIO (CRÍTICO)"
 echo "========================================="
 
 # Sox - Para generar archivos de audio con canales L/R específicos

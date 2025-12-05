@@ -307,27 +307,42 @@ def screen_wifi_logic(stdscr):
 
 def screen_tech(stdscr):
     stdscr.clear()
-    draw_header(stdscr, "IDENTIFICACIÓN TÉCNICO")
     h, w = stdscr.getmaxyx()
     
-    # Título más grande
-    center(stdscr, 8, "═══════════════════════════════════════", curses.A_BOLD)
-    center(stdscr, 9, "  IDENTIFICACIÓN DEL TÉCNICO  ", curses.A_BOLD | curses.color_pair(6))
-    center(stdscr, 10, "═══════════════════════════════════════", curses.A_BOLD)
+    # Header sin safe_print para evitar ajustes
+    try:
+        stdscr.addstr(0, 0, "=" * (w-1), curses.color_pair(4)|curses.A_BOLD)
+        stdscr.addstr(1, 0, " NOVACHECK PRO | IDENTIFICACIÓN ".ljust(w-1), curses.color_pair(4)|curses.A_BOLD)
+        stdscr.addstr(2, 0, "=" * (w-1), curses.color_pair(4)|curses.A_BOLD)
+    except: pass
     
-    # Prompt en línea separada
-    center(stdscr, 14, "Por favor, escribe tu nombre:", curses.A_BOLD)
+    # Título
+    try:
+        stdscr.addstr(6, 2, "═══════════════════════════════════════")
+        stdscr.addstr(7, 2, "  IDENTIFICACIÓN DEL TÉCNICO  ", curses.color_pair(6) | curses.A_BOLD)
+        stdscr.addstr(8, 2, "═══════════════════════════════════════")
+    except: pass
     
-    # Input en la línea siguiente, centrado
-    curses.echo()
-    curses.curs_set(1)
-    stdscr.move(17, w//2 - 15)
-    safe_print(stdscr, 17, w//2 - 15, ">> ", curses.A_BOLD)
-    stdscr.move(17, w//2 - 12)
+    # Prompt
+    try:
+        stdscr.addstr(11, 2, "Por favor, escribe tu nombre:", curses.A_BOLD)
+    except: pass
+    
+    # Área limpia para input
+    try:
+        stdscr.addstr(13, 2, " " * (w-4))  # Limpiar línea
+        stdscr.addstr(13, 2, ">> ")
+    except: pass
+    
     stdscr.refresh()
     
+    # Input
+    curses.echo()
+    curses.curs_set(1)
+    stdscr.move(13, 5)  # Posición después de ">> "
+    
     try: 
-        name = stdscr.getstr().decode().strip()
+        name = stdscr.getstr(13, 5, 40).decode().strip()
     except: 
         name = "Unknown"
     

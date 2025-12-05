@@ -612,73 +612,65 @@ def generate_test_sound_channel(channel='both'):
     
     return None
 
-def play_test_sound():
+def play_test_sound_channel(channel='both'):
     """
-    Reproduce un tono de prueba usando el mejor método disponible
-    Prueba con todos los dispositivos hasta encontrar uno que funcione
+    Reproduce un tono de prueba en un canal específico
+    channel: 'left', 'right', 'both'
+    Usa SOLO métodos silenciosos para evitar errores en pantalla
     """
-    # Generar archivo de prueba
-    test_file = generate_test_sound()
+    # Generar archivo de prueba para el canal específico
+    test_file = generate_test_sound_channel(channel)
+    
+    if not test_file or not os.path.exists(test_file):
+        return False
     
     # Obtener dispositivos disponibles
     devices = detect_audio_devices()
     
-    # Método 1: Intentar con aplay usando cada dispositivo
-    if test_file and os.path.exists(test_file):
-        for dev in devices:
-            for dev_name in [dev['plughw'], dev['hw']]:
+    success = False
+    
+    # Método 1: aplay (PREFERIDO - completamente silencioso)
+    for dev in devices:
+        for dev_name in [dev['plughw'], dev['hw']]:
+            try:
                 result = subprocess.run(
-                    f"aplay -q -D {dev_name} {test_file}",
+                    f"aplay -q -D {dev_name} {test_file} 2>/dev/null",
                     shell=True, 
                     stdout=subprocess.DEVNULL, 
                     stderr=subprocess.DEVNULL,
                     timeout=5
                 )
                 if result.returncode == 0:
-                    if os.path.exists(test_file):
-                        os.remove(test_file)
-                    return True
-        
-        # Limpiar archivo
-        if os.path.exists(test_file):
-            os.remove(test_file)
+                    success = True
+                    break
+            except:
+                continue
+        if success:
+            break
     
-    # Método 2: paplay (PulseAudio)
-    if test_file and shutil.which("paplay"):
-        result = subprocess.run(
-            f"paplay {test_file}",
-            shell=True,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            timeout=5
-        )
-        if result.returncode == 0:
-            return True
-    
-    # Método 3: speaker-test con cada dispositivo
-    for dev in devices:
-        for dev_name in [dev['plughw'], dev['hw']]:
-            # Ejecutar speaker-test y capturar TODO el output
+    # Método 2: paplay si aplay falló
+    if not success and shutil.which("paplay"):
+        try:
             result = subprocess.run(
-                f"timeout 3 speaker-test -D {dev_name} -t sine -f 800 -l 1 -c 2 >/dev/null 2>&1",
-                shell=True
+                f"paplay {test_file} 2>/dev/null",
+                shell=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=5
             )
-            # Si no dio timeout, probablemente funcionó
-            if result.returncode != 124:  # 124 es código de timeout
-                time.sleep(2)  # Dar tiempo a que suene
-                return True
+            if result.returncode == 0:
+                success = True
+        except:
+            pass
     
-    # Método 4: speaker-test con default
-    result = subprocess.run(
-        "timeout 3 speaker-test -t sine -f 800 -l 1 >/dev/null 2>&1",
-        shell=True
-    )
-    if result.returncode != 124:
-        time.sleep(2)
-        return True
+    # Limpiar archivo temporal
+    if os.path.exists(test_file):
+        try:
+            os.remove(test_file)
+        except:
+            pass
     
-    # Si todo falla, al menos intentamos
-    return False
+    return success
 
 def screen_audio_adv(stdscr):
     res={"SPEAKERS":"FAIL","MIC":"FAIL"}

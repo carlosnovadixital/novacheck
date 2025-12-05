@@ -32,13 +32,13 @@ echo "2. INSTALANDO PYNPUT GLOBALMENTE"
 echo "========================================="
 
 echo "Actualizando pip..."
-pip3 install --upgrade pip
+python3 -m pip install --break-system-packages --upgrade pip
 
 echo "Instalando pynput (para test de teclado)..."
-pip3 install pynput
+python3 -m pip install --break-system-packages pynput
 
 echo "Instalando pygame y numpy con pip..."
-pip3 install pygame numpy
+python3 -m pip install --break-system-packages pygame numpy
 
 echo "✓ Dependencias Python instaladas globalmente"
 

@@ -389,9 +389,9 @@ def screen_hw_info(stdscr, hw, tech):
         r+=2
     
     r+=2
-    center(stdscr, r, "[ Presiona ENTER para continuar ]", curses.color_pair(6) | curses.A_BOLD)
+    center(stdscr, r, "Continuando automáticamente...", curses.A_DIM)
     stdscr.refresh()
-    while stdscr.getch() not in [10,13]: pass
+    time.sleep(3)  # Continuar automáticamente después de 3 segundos
 
 def screen_usb_interactive(stdscr):
     stdscr.clear()

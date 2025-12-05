@@ -621,6 +621,7 @@ def play_test_sound_channel(channel='both'):
     Reproduce un tono de prueba en un canal específico
     channel: 'left', 'right', 'both'
     Usa SOLO métodos silenciosos para evitar errores en pantalla
+    EJECUTA EN SUBSHELL para evitar output en terminal actual
     """
     # Generar archivo de prueba para el canal específico
     test_file = generate_test_sound_channel(channel)
@@ -633,41 +634,48 @@ def play_test_sound_channel(channel='both'):
     
     success = False
     
-    # Método 1: aplay (PREFERIDO - completamente silencioso)
+    # Método 1: aplay en subshell completamente aislado
     for dev in devices:
         for dev_name in [dev['plughw'], dev['hw']]:
             try:
-                result = subprocess.run(
-                    f"aplay -q -D {dev_name} {test_file} 2>/dev/null",
-                    shell=True, 
-                    stdout=subprocess.DEVNULL, 
+                # Usar subshell con redirección completa
+                cmd = f"(aplay -q -D {dev_name} {test_file} >/dev/null 2>&1) &"
+                subprocess.Popen(
+                    cmd,
+                    shell=True,
+                    stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
-                    timeout=5
+                    stdin=subprocess.DEVNULL,
+                    close_fds=True
                 )
-                if result.returncode == 0:
-                    success = True
-                    break
+                # Esperar a que termine
+                time.sleep(2)
+                success = True
+                break
             except:
                 continue
         if success:
             break
     
-    # Método 2: paplay si aplay falló
+    # Método 2: paplay en subshell
     if not success and shutil.which("paplay"):
         try:
-            result = subprocess.run(
-                f"paplay {test_file} 2>/dev/null",
+            cmd = f"(paplay {test_file} >/dev/null 2>&1) &"
+            subprocess.Popen(
+                cmd,
                 shell=True,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
-                timeout=5
+                stdin=subprocess.DEVNULL,
+                close_fds=True
             )
-            if result.returncode == 0:
-                success = True
+            time.sleep(2)
+            success = True
         except:
             pass
     
     # Limpiar archivo temporal
+    time.sleep(1)  # Esperar un poco antes de borrar
     if os.path.exists(test_file):
         try:
             os.remove(test_file)

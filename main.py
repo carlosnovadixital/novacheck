@@ -668,32 +668,32 @@ def play_simple_audio_test_fallback():
     return result.returncode == 0
 
 def screen_audio_adv(stdscr):
-    res={"SPEAKERS":"FAIL","MIC":"FAIL"}
+    res={"L":"FAIL","R":"FAIL","MIC":"FAIL"}
     
     # Inicializar audio silenciosamente
     fix_audio_mixer()
     time.sleep(1)
     
-    # PRUEBA DE ALTAVOCES (SIMPLE - método que funcionaba)
+    # PRUEBA ALTAVOZ IZQUIERDO (LEFT)
     stdscr.erase()
     stdscr.refresh()
     
     try:
         stdscr.addstr(0, 0, "=" * 79, curses.color_pair(4)|curses.A_BOLD)
-        stdscr.addstr(1, 0, " PRUEBA DE ALTAVOCES ".center(79), curses.color_pair(4)|curses.A_BOLD)
+        stdscr.addstr(1, 0, " ALTAVOZ IZQUIERDO (LEFT) ".center(79), curses.color_pair(4)|curses.A_BOLD)
         stdscr.addstr(2, 0, "=" * 79, curses.color_pair(4)|curses.A_BOLD)
         
-        stdscr.addstr(10, 20, "Reproduciendo sonido de prueba...")
+        stdscr.addstr(10, 20, "Reproduciendo en canal IZQUIERDO...")
         stdscr.addstr(12, 20, "Escucha atentamente...", curses.A_DIM)
         stdscr.refresh()
     except: pass
     
     time.sleep(1)
     
-    # Reproducir audio con el método simple que funcionaba
-    play_simple_audio_test()
+    # Reproducir solo en canal LEFT usando pygame
+    play_audio_pygame('left')
     
-    time.sleep(2)
+    time.sleep(1)
     
     # Preguntar resultado
     stdscr.erase()
@@ -701,18 +701,58 @@ def screen_audio_adv(stdscr):
     
     try:
         stdscr.addstr(0, 0, "=" * 79, curses.color_pair(4)|curses.A_BOLD)
-        stdscr.addstr(1, 0, " PRUEBA DE ALTAVOCES ".center(79), curses.color_pair(4)|curses.A_BOLD)
+        stdscr.addstr(1, 0, " ALTAVOZ IZQUIERDO (LEFT) ".center(79), curses.color_pair(4)|curses.A_BOLD)
         stdscr.addstr(2, 0, "=" * 79, curses.color_pair(4)|curses.A_BOLD)
         
-        stdscr.addstr(10, 15, "¿Se ESCUCHÓ sonido en los altavoces?", curses.A_BOLD)
-        stdscr.addstr(14, 20, "[SPACE / ENTER] = SÍ, funcionan", curses.color_pair(2) | curses.A_BOLD)
-        stdscr.addstr(16, 20, "[N] = NO funcionan", curses.color_pair(3) | curses.A_BOLD)
+        stdscr.addstr(10, 15, "¿Se ESCUCHÓ el altavoz IZQUIERDO?", curses.A_BOLD)
+        stdscr.addstr(14, 20, "[SPACE / ENTER] = SÍ", curses.color_pair(2) | curses.A_BOLD)
+        stdscr.addstr(16, 20, "[N] = NO", curses.color_pair(3) | curses.A_BOLD)
         stdscr.refresh()
     except: pass
     
     key = stdscr.getch()
-    if key in [32, 10, 13]:  # SPACE, ENTER
-        res["SPEAKERS"]="OK"
+    if key in [32, 10, 13]:
+        res["L"]="OK"
+    
+    # PRUEBA ALTAVOZ DERECHO (RIGHT)
+    stdscr.erase()
+    stdscr.refresh()
+    
+    try:
+        stdscr.addstr(0, 0, "=" * 79, curses.color_pair(4)|curses.A_BOLD)
+        stdscr.addstr(1, 0, " ALTAVOZ DERECHO (RIGHT) ".center(79), curses.color_pair(4)|curses.A_BOLD)
+        stdscr.addstr(2, 0, "=" * 79, curses.color_pair(4)|curses.A_BOLD)
+        
+        stdscr.addstr(10, 20, "Reproduciendo en canal DERECHO...")
+        stdscr.addstr(12, 20, "Escucha atentamente...", curses.A_DIM)
+        stdscr.refresh()
+    except: pass
+    
+    time.sleep(1)
+    
+    # Reproducir solo en canal RIGHT usando pygame
+    play_audio_pygame('right')
+    
+    time.sleep(1)
+    
+    # Preguntar resultado
+    stdscr.erase()
+    stdscr.refresh()
+    
+    try:
+        stdscr.addstr(0, 0, "=" * 79, curses.color_pair(4)|curses.A_BOLD)
+        stdscr.addstr(1, 0, " ALTAVOZ DERECHO (RIGHT) ".center(79), curses.color_pair(4)|curses.A_BOLD)
+        stdscr.addstr(2, 0, "=" * 79, curses.color_pair(4)|curses.A_BOLD)
+        
+        stdscr.addstr(10, 15, "¿Se ESCUCHÓ el altavoz DERECHO?", curses.A_BOLD)
+        stdscr.addstr(14, 20, "[SPACE / ENTER] = SÍ", curses.color_pair(2) | curses.A_BOLD)
+        stdscr.addstr(16, 20, "[N] = NO", curses.color_pair(3) | curses.A_BOLD)
+        stdscr.refresh()
+    except: pass
+    
+    key = stdscr.getch()
+    if key in [32, 10, 13]:
+        res["R"]="OK"
     
     # PRUEBA DE MICRÓFONO
     stdscr.erase()
@@ -755,7 +795,7 @@ def screen_audio_adv(stdscr):
     time.sleep(2)
     res["MIC"]=st
     
-    return "OK" if res["SPEAKERS"]=="OK" and res["MIC"]=="OK" else "FAIL"
+    return "OK" if res["L"]=="OK" and res["R"]=="OK" and res["MIC"]=="OK" else "FAIL"
 
 def screen_visual(stdscr):
     cols=[(curses.COLOR_RED,"ROJO"),(curses.COLOR_GREEN,"VERDE"),(curses.COLOR_BLUE,"AZUL"),(curses.COLOR_WHITE,"BLANCO")]

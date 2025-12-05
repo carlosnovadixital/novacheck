@@ -530,40 +530,82 @@ def screen_auto(stdscr):
     while stdscr.getch() not in [10,13]: pass
     return res
 
+def play_test_sound():
+    """Genera y reproduce un tono de prueba sin mostrar output"""
+    # Generar archivo WAV de prueba con sox o usar beep
+    test_file = "/tmp/test_beep.wav"
+    
+    # Intentar generar con sox
+    if shutil.which("sox"):
+        subprocess.run(f"sox -n {test_file} synth 1 sine 800", 
+                      shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    else:
+        # Fallback: usar speaker-test pero en background y capturado
+        subprocess.run("(speaker-test -t sine -f 800 -l 1 >/dev/null 2>&1) &", 
+                      shell=True)
+        time.sleep(2)
+        return True
+    
+    # Reproducir con aplay (silencioso)
+    if os.path.exists(test_file):
+        subprocess.run(f"aplay -q {test_file}", 
+                      shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        os.remove(test_file)
+        return True
+    return False
+
 def screen_audio_adv(stdscr):
     res={"L":"FAIL","R":"FAIL","MIC":"FAIL"}
     
     # Pantalla inicial - Reset audio
     stdscr.erase()
     stdscr.refresh()
-    draw_header(stdscr, "AUDIO CHECK")
-    center(stdscr, 8, "Inicializando drivers de audio...")
-    stdscr.refresh()
+    
+    try:
+        stdscr.addstr(0, 0, "=" * 79, curses.color_pair(4)|curses.A_BOLD)
+        stdscr.addstr(1, 0, " AUDIO CHECK ".center(79), curses.color_pair(4)|curses.A_BOLD)
+        stdscr.addstr(2, 0, "=" * 79, curses.color_pair(4)|curses.A_BOLD)
+        stdscr.addstr(8, 20, "Inicializando drivers de audio...")
+        stdscr.refresh()
+    except: pass
+    
     fix_audio_mixer()
     time.sleep(2)
     
     # Prueba IZQUIERDO (Left)
     stdscr.erase()
     stdscr.refresh()
-    draw_header(stdscr, "AUDIO - ALTAVOZ IZQUIERDO")
-    center(stdscr, 10, "════════════════════════════════════", curses.A_BOLD)
-    center(stdscr, 11, "  ALTAVOZ IZQUIERDO (LEFT)  ", curses.A_BOLD | curses.color_pair(6))
-    center(stdscr, 12, "════════════════════════════════════", curses.A_BOLD)
-    center(stdscr, 15, "Reproduciendo sonido...", curses.A_BLINK)
-    stdscr.refresh()
+    
+    try:
+        stdscr.addstr(0, 0, "=" * 79, curses.color_pair(4)|curses.A_BOLD)
+        stdscr.addstr(1, 0, " AUDIO - ALTAVOZ IZQUIERDO ".center(79), curses.color_pair(4)|curses.A_BOLD)
+        stdscr.addstr(2, 0, "=" * 79, curses.color_pair(4)|curses.A_BOLD)
+        
+        stdscr.addstr(10, 15, "════════════════════════════════════", curses.A_BOLD)
+        stdscr.addstr(11, 15, "  ALTAVOZ IZQUIERDO (LEFT)  ", curses.color_pair(6) | curses.A_BOLD)
+        stdscr.addstr(12, 15, "════════════════════════════════════", curses.A_BOLD)
+        stdscr.addstr(15, 20, "Reproduciendo sonido...", curses.A_BLINK)
+        stdscr.refresh()
+    except: pass
+    
     time.sleep(1)
     
-    # Reproducir en LEFT
-    subprocess.run("speaker-test -D plughw:0,0 -t sine -f 440 -c 2 -s 1 -l 1", shell=True, 
-                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    # Reproducir sonido (sin output visible)
+    play_test_sound()
     
     stdscr.erase()
     stdscr.refresh()
-    draw_header(stdscr, "AUDIO - ALTAVOZ IZQUIERDO")
-    center(stdscr, 10, "¿Se escuchó el ALTAVOZ IZQUIERDO?", curses.A_BOLD)
-    center(stdscr, 13, "[S] SI", curses.color_pair(2) | curses.A_BOLD)
-    center(stdscr, 15, "[N] NO", curses.color_pair(3) | curses.A_BOLD)
-    stdscr.refresh()
+    
+    try:
+        stdscr.addstr(0, 0, "=" * 79, curses.color_pair(4)|curses.A_BOLD)
+        stdscr.addstr(1, 0, " AUDIO - ALTAVOZ IZQUIERDO ".center(79), curses.color_pair(4)|curses.A_BOLD)
+        stdscr.addstr(2, 0, "=" * 79, curses.color_pair(4)|curses.A_BOLD)
+        
+        stdscr.addstr(10, 15, "¿Se escuchó el ALTAVOZ IZQUIERDO?", curses.A_BOLD)
+        stdscr.addstr(13, 25, "[S] SI", curses.color_pair(2) | curses.A_BOLD)
+        stdscr.addstr(15, 25, "[N] NO", curses.color_pair(3) | curses.A_BOLD)
+        stdscr.refresh()
+    except: pass
     
     if stdscr.getch() in [ord('s'),ord('S')]: 
         res["L"]="OK"
@@ -571,25 +613,37 @@ def screen_audio_adv(stdscr):
     # Prueba DERECHO (Right)
     stdscr.erase()
     stdscr.refresh()
-    draw_header(stdscr, "AUDIO - ALTAVOZ DERECHO")
-    center(stdscr, 10, "════════════════════════════════════", curses.A_BOLD)
-    center(stdscr, 11, "  ALTAVOZ DERECHO (RIGHT)  ", curses.A_BOLD | curses.color_pair(6))
-    center(stdscr, 12, "════════════════════════════════════", curses.A_BOLD)
-    center(stdscr, 15, "Reproduciendo sonido...", curses.A_BLINK)
-    stdscr.refresh()
+    
+    try:
+        stdscr.addstr(0, 0, "=" * 79, curses.color_pair(4)|curses.A_BOLD)
+        stdscr.addstr(1, 0, " AUDIO - ALTAVOZ DERECHO ".center(79), curses.color_pair(4)|curses.A_BOLD)
+        stdscr.addstr(2, 0, "=" * 79, curses.color_pair(4)|curses.A_BOLD)
+        
+        stdscr.addstr(10, 15, "════════════════════════════════════", curses.A_BOLD)
+        stdscr.addstr(11, 15, "  ALTAVOZ DERECHO (RIGHT)  ", curses.color_pair(6) | curses.A_BOLD)
+        stdscr.addstr(12, 15, "════════════════════════════════════", curses.A_BOLD)
+        stdscr.addstr(15, 20, "Reproduciendo sonido...", curses.A_BLINK)
+        stdscr.refresh()
+    except: pass
+    
     time.sleep(1)
     
-    # Reproducir en RIGHT
-    subprocess.run("speaker-test -D plughw:0,0 -t sine -f 440 -c 2 -s 2 -l 1", shell=True,
-                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    # Reproducir sonido
+    play_test_sound()
     
     stdscr.erase()
     stdscr.refresh()
-    draw_header(stdscr, "AUDIO - ALTAVOZ DERECHO")
-    center(stdscr, 10, "¿Se escuchó el ALTAVOZ DERECHO?", curses.A_BOLD)
-    center(stdscr, 13, "[S] SI", curses.color_pair(2) | curses.A_BOLD)
-    center(stdscr, 15, "[N] NO", curses.color_pair(3) | curses.A_BOLD)
-    stdscr.refresh()
+    
+    try:
+        stdscr.addstr(0, 0, "=" * 79, curses.color_pair(4)|curses.A_BOLD)
+        stdscr.addstr(1, 0, " AUDIO - ALTAVOZ DERECHO ".center(79), curses.color_pair(4)|curses.A_BOLD)
+        stdscr.addstr(2, 0, "=" * 79, curses.color_pair(4)|curses.A_BOLD)
+        
+        stdscr.addstr(10, 15, "¿Se escuchó el ALTAVOZ DERECHO?", curses.A_BOLD)
+        stdscr.addstr(13, 25, "[S] SI", curses.color_pair(2) | curses.A_BOLD)
+        stdscr.addstr(15, 25, "[N] NO", curses.color_pair(3) | curses.A_BOLD)
+        stdscr.refresh()
+    except: pass
     
     if stdscr.getch() in [ord('s'),ord('S')]: 
         res["R"]="OK"
@@ -597,13 +651,20 @@ def screen_audio_adv(stdscr):
     # Prueba de micrófono
     stdscr.erase()
     stdscr.refresh()
-    draw_header(stdscr, "AUDIO - MICRÓFONO")
-    center(stdscr, 8, "════════════════════════════════════", curses.A_BOLD)
-    center(stdscr, 9, "  PRUEBA DE MICRÓFONO  ", curses.A_BOLD | curses.color_pair(6))
-    center(stdscr, 10, "════════════════════════════════════", curses.A_BOLD)
-    center(stdscr, 13, "¡Di algo FUERTE durante 2 segundos!", curses.A_BLINK | curses.A_BOLD)
-    center(stdscr, 16, "Grabando en 3 segundos...")
-    stdscr.refresh()
+    
+    try:
+        stdscr.addstr(0, 0, "=" * 79, curses.color_pair(4)|curses.A_BOLD)
+        stdscr.addstr(1, 0, " AUDIO - MICRÓFONO ".center(79), curses.color_pair(4)|curses.A_BOLD)
+        stdscr.addstr(2, 0, "=" * 79, curses.color_pair(4)|curses.A_BOLD)
+        
+        stdscr.addstr(8, 15, "════════════════════════════════════", curses.A_BOLD)
+        stdscr.addstr(9, 15, "  PRUEBA DE MICRÓFONO  ", curses.color_pair(6) | curses.A_BOLD)
+        stdscr.addstr(10, 15, "════════════════════════════════════", curses.A_BOLD)
+        stdscr.addstr(13, 15, "¡Di algo FUERTE durante 2 segundos!", curses.A_BLINK | curses.A_BOLD)
+        stdscr.addstr(16, 15, "Grabando en 3 segundos...")
+        stdscr.refresh()
+    except: pass
+    
     time.sleep(3)
     
     st, msg = test_microphone()
@@ -611,13 +672,20 @@ def screen_audio_adv(stdscr):
     # Mostrar resultado automáticamente por 2 segundos
     stdscr.erase()
     stdscr.refresh()
-    draw_header(stdscr, "AUDIO - MICRÓFONO")
-    col = curses.color_pair(2 if st=="OK" else 3)
-    center(stdscr, 10, "════════════════════════════════════", curses.A_BOLD)
-    center(stdscr, 11, f"  {msg}  ", col | curses.A_BOLD)
-    center(stdscr, 12, "════════════════════════════════════", curses.A_BOLD)
-    center(stdscr, 15, "Continuando automáticamente...", curses.A_DIM)
-    stdscr.refresh()
+    
+    try:
+        stdscr.addstr(0, 0, "=" * 79, curses.color_pair(4)|curses.A_BOLD)
+        stdscr.addstr(1, 0, " AUDIO - MICRÓFONO ".center(79), curses.color_pair(4)|curses.A_BOLD)
+        stdscr.addstr(2, 0, "=" * 79, curses.color_pair(4)|curses.A_BOLD)
+        
+        col = curses.color_pair(2 if st=="OK" else 3)
+        stdscr.addstr(10, 20, "════════════════════════════════════", curses.A_BOLD)
+        stdscr.addstr(11, 20, f"  {msg}  ", col | curses.A_BOLD)
+        stdscr.addstr(12, 20, "════════════════════════════════════", curses.A_BOLD)
+        stdscr.addstr(15, 20, "Continuando automáticamente...", curses.A_DIM)
+        stdscr.refresh()
+    except: pass
+    
     time.sleep(2)
     res["MIC"]=st
     

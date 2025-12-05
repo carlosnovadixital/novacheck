@@ -1,6 +1,21 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# Agregar virtualenv al path si existe
+import sys
+import os
+
+venv_paths = [
+    '/home/novacheck/venv/lib/python3.9/site-packages',
+    '/home/novacheck/venv/lib/python3.10/site-packages',
+    '/home/novacheck/venv/lib/python3.11/site-packages',
+    '/home/novacheck/venv/lib/python3.12/site-packages',
+]
+
+for venv_path in venv_paths:
+    if os.path.exists(venv_path) and venv_path not in sys.path:
+        sys.path.insert(0, venv_path)
+
 import curses
 import os
 import json

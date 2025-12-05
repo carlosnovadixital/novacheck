@@ -16,14 +16,11 @@ for venv_path in venv_paths:
     if os.path.exists(venv_path) and venv_path not in sys.path:
         sys.path.insert(0, venv_path)
 
-import curses
-import os
 import json
 import datetime
 import time
 import subprocess
 import shutil
-import sys
 import urllib.request
 import urllib.error
 import ssl

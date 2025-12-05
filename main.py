@@ -896,8 +896,8 @@ def map_key(k):
 
 def screen_keyboard_vis(stdscr):
     """
-    Test de teclado mejorado - Detecta TODAS las teclas posibles
-    Incluye F1-F12 y mejor detección de caracteres especiales
+    Test de teclado DINÁMICO - Muestra las teclas que detecta en tiempo real
+    NO usa layout fijo para evitar problemas de mapeo ES/US
     """
     stdscr.clear()
     h, w = stdscr.getmaxyx()
@@ -912,29 +912,14 @@ def screen_keyboard_vis(stdscr):
     # Instrucciones
     try:
         stdscr.addstr(4, 2, "INSTRUCCIONES: Pulsa TODAS las teclas del teclado", curses.A_BOLD | curses.color_pair(6))
-        stdscr.addstr(5, 2, "Incluye F1-F12, Ñ, Ç y todas las demás | [ESC] x3 para terminar", curses.A_DIM)
+        stdscr.addstr(5, 2, "Presiona [SPACE] 3 veces para terminar cuando hayas probado suficientes", curses.A_DIM)
     except: pass
     
-    # Layout COMPLETO - Incluye F1-F12
-    keyboard_layout = [
-        ["ESC", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12"],
-        ["`", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "=", "BKSP"],
-        ["TAB", "Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P", "[", "]", "\\"],
-        ["A", "S", "D", "F", "G", "H", "J", "K", "L", "Ñ", ";", "'", "ENTER"],
-        ["Z", "X", "C", "V", "B", "N", "M", ",", ".", "/", "Ç"],
-        ["SPACE"]
-    ]
-    
-    # Nota sobre SHIFT, CTRL, ALT: No se pueden detectar solos en curses
-    # Solo se detectan en combinación con otras teclas
-    
-    pressed = set()
-    esc_count = 0
+    pressed_keys = []  # Lista de teclas en orden
+    pressed_set = set()  # Set para contar únicas
+    space_count = 0
     stdscr.nodelay(True)
     stdscr.timeout(100)
-    
-    # Mensaje informativo
-    info_shown = False
     
     while True:
         # Limpiar área de trabajo
@@ -945,54 +930,46 @@ def screen_keyboard_vis(stdscr):
         
         # Contador
         try:
-            stdscr.addstr(7, 2, f"═══ TECLAS DETECTADAS: {len(pressed)} ═══", 
+            stdscr.addstr(7, 2, f"═══ TECLAS ÚNICAS DETECTADAS: {len(pressed_set)} ═══", 
                          curses.color_pair(2) | curses.A_BOLD)
         except: pass
         
         # Barra de progreso
         try:
-            progress = min(len(pressed), 60)
-            bar = "█" * progress + "░" * (60 - progress)
+            progress = min(len(pressed_set), 50)
+            bar = "█" * progress + "░" * (50 - progress)
             stdscr.addstr(8, 2, f"[{bar}]")
         except: pass
         
-        # Info ESC
-        if esc_count > 0:
+        # Info SPACE
+        if space_count > 0:
             try:
-                stdscr.addstr(9, 2, f"ESC presionado {esc_count}/3 - pulsa 2 veces más para terminar", 
+                stdscr.addstr(9, 2, f"SPACE presionado {space_count}/3 veces", 
                              curses.color_pair(6) | curses.A_BLINK)
             except: pass
         
-        # Dibujar teclado visual
-        start_y = 11
-        for row_idx, row in enumerate(keyboard_layout):
-            x = 2
-            y = start_y + row_idx * 2
-            
-            for key in row:
-                # Determinar si está presionada
-                attr = curses.color_pair(5) | curses.A_BOLD if key in pressed else curses.color_pair(1)
-                
-                # Dibujar tecla con formato apropiado
-                try:
-                    if len(key) == 1:
-                        key_display = f"[{key:^3s}]"
-                    elif len(key) <= 3:
-                        key_display = f"[{key:^4s}]"
-                    else:
-                        key_display = f"[{key:^5s}]"
-                    stdscr.addstr(y, x, key_display, attr)
-                    x += len(key_display) + 1
-                except: pass
+        # Mostrar lista de teclas detectadas (últimas 80)
+        try:
+            stdscr.addstr(11, 2, "TECLAS DETECTADAS:", curses.A_BOLD | curses.A_UNDERLINE)
+        except: pass
         
-        # Nota informativa (mostrar una vez)
-        if not info_shown and len(pressed) > 5:
-            try:
-                stdscr.addstr(start_y + len(keyboard_layout)*2 + 1, 2, 
-                             "NOTA: SHIFT, CTRL, ALT no se pueden detectar individualmente", 
-                             curses.A_DIM)
-                info_shown = True
-            except: pass
+        # Mostrar en formato de lista compacta
+        start_y = 12
+        col_width = 12
+        cols = 6
+        display_keys = pressed_keys[-60:]  # Últimas 60
+        
+        for idx, key in enumerate(display_keys):
+            col_num = idx % cols
+            row_num = idx // cols
+            x_pos = 2 + (col_num * col_width)
+            y_pos = start_y + row_num
+            
+            if y_pos < 23:
+                try:
+                    # Mostrar tecla con color verde
+                    stdscr.addstr(y_pos, x_pos, f"{key:<10s}", curses.color_pair(5))
+                except: pass
         
         stdscr.refresh()
         
@@ -1003,35 +980,48 @@ def screen_keyboard_vis(stdscr):
             k = -1
         
         if k != -1:
-            # ESC para terminar (x3)
-            if k == 27:
-                esc_count += 1
-                if esc_count >= 3:
+            # SPACE para terminar (x3)
+            if k == 32:
+                space_count += 1
+                if space_count >= 3:
                     break
-                pressed.add("ESC")
             else:
-                esc_count = 0
+                space_count = 0  # Reset si pulsa otra
             
             # Mapear tecla
-            char = map_key(k)
+            char = None
             
-            # Teclas de función (F1-F12)
-            if k == curses.KEY_F1 or k == 265: char = "F1"; pressed.add(char)
-            elif k == curses.KEY_F2 or k == 266: char = "F2"; pressed.add(char)
-            elif k == curses.KEY_F3 or k == 267: char = "F3"; pressed.add(char)
-            elif k == curses.KEY_F4 or k == 268: char = "F4"; pressed.add(char)
-            elif k == curses.KEY_F5 or k == 269: char = "F5"; pressed.add(char)
-            elif k == curses.KEY_F6 or k == 270: char = "F6"; pressed.add(char)
-            elif k == curses.KEY_F7 or k == 271: char = "F7"; pressed.add(char)
-            elif k == curses.KEY_F8 or k == 272: char = "F8"; pressed.add(char)
-            elif k == curses.KEY_F9 or k == 273: char = "F9"; pressed.add(char)
-            elif k == curses.KEY_F10 or k == 274: char = "F10"; pressed.add(char)
-            elif k == curses.KEY_F11 or k == 275: char = "F11"; pressed.add(char)
-            elif k == curses.KEY_F12 or k == 276: char = "F12"; pressed.add(char)
+            # Teclas de función
+            if k == curses.KEY_F1 or k == 265: char = "F1"
+            elif k == curses.KEY_F2 or k == 266: char = "F2"
+            elif k == curses.KEY_F3 or k == 267: char = "F3"
+            elif k == curses.KEY_F4 or k == 268: char = "F4"
+            elif k == curses.KEY_F5 or k == 269: char = "F5"
+            elif k == curses.KEY_F6 or k == 270: char = "F6"
+            elif k == curses.KEY_F7 or k == 271: char = "F7"
+            elif k == curses.KEY_F8 or k == 272: char = "F8"
+            elif k == curses.KEY_F9 or k == 273: char = "F9"
+            elif k == curses.KEY_F10 or k == 274: char = "F10"
+            elif k == curses.KEY_F11 or k == 275: char = "F11"
+            elif k == curses.KEY_F12 or k == 276: char = "F12"
+            elif k == 27: char = "ESC"
+            else:
+                # Usar map_key para el resto
+                char = map_key(k)
+                
+                # Si no hay mapeo, mostrar código
+                if not char and k < 256:
+                    try:
+                        char = chr(k)
+                        if not char.isprintable():
+                            char = f"KEY_{k}"
+                    except:
+                        char = f"KEY_{k}"
             
-            # Agregar a presionadas
+            # Agregar a listas
             if char:
-                pressed.add(char)
+                pressed_keys.append(char)
+                pressed_set.add(char)
         
         time.sleep(0.05)
     
@@ -1045,15 +1035,15 @@ def screen_keyboard_vis(stdscr):
         stdscr.addstr(2, 0, "=" * (w-1), curses.color_pair(4)|curses.A_BOLD)
         
         stdscr.addstr(8, 20, "════════════════════════════════════════")
-        stdscr.addstr(9, 20, f"  DETECTADAS: {len(pressed)} TECLAS  ", curses.color_pair(2) | curses.A_BOLD)
+        stdscr.addstr(9, 20, f"  TECLAS ÚNICAS: {len(pressed_set)}  ", curses.color_pair(2) | curses.A_BOLD)
         stdscr.addstr(10, 20, "════════════════════════════════════════")
         
-        # Umbral: 35 teclas (alfanuméricas + algunas F + especiales)
-        if len(pressed) >= 35:
+        # Umbral: 30 teclas únicas
+        if len(pressed_set) >= 30:
             stdscr.addstr(13, 30, "✓ TEST PASADO", curses.color_pair(2) | curses.A_BOLD)
             result = "OK"
         else:
-            stdscr.addstr(13, 25, f"✗ Solo {len(pressed)} teclas (mínimo 35)", curses.color_pair(3) | curses.A_BOLD)
+            stdscr.addstr(13, 25, f"✗ Solo {len(pressed_set)} teclas (mínimo 30)", curses.color_pair(3) | curses.A_BOLD)
             result = "FAIL"
         
         stdscr.addstr(16, 20, "Continuando automáticamente...", curses.A_DIM)

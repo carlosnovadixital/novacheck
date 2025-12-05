@@ -309,7 +309,7 @@ def screen_tech(stdscr):
     stdscr.clear()
     h, w = stdscr.getmaxyx()
     
-    # Header sin safe_print para evitar ajustes
+    # Header
     try:
         stdscr.addstr(0, 0, "=" * (w-1), curses.color_pair(4)|curses.A_BOLD)
         stdscr.addstr(1, 0, " NOVACHECK PRO | IDENTIFICACIÓN ".ljust(w-1), curses.color_pair(4)|curses.A_BOLD)
@@ -330,20 +330,24 @@ def screen_tech(stdscr):
     
     # Área limpia para input
     try:
-        stdscr.addstr(13, 2, " " * (w-4))  # Limpiar línea
-        stdscr.addstr(13, 2, ">> ")
+        stdscr.addstr(13, 2, " " * 50)  # Limpiar área amplia
+        stdscr.addstr(13, 2, ">> ", curses.A_BOLD)
     except: pass
     
     stdscr.refresh()
     
-    # Input
+    # Input - SIN timeout, espera indefinidamente
     curses.echo()
     curses.curs_set(1)
-    stdscr.move(13, 5)  # Posición después de ">> "
+    stdscr.nodelay(False)  # Asegurar que NO hay timeout
+    stdscr.timeout(-1)      # Esperar indefinidamente
     
-    try: 
-        name = stdscr.getstr(13, 5, 40).decode().strip()
-    except: 
+    try:
+        # Posicionar cursor y leer string
+        stdscr.move(13, 5)
+        name_bytes = stdscr.getstr(13, 5, 40)  # Max 40 caracteres
+        name = name_bytes.decode('utf-8', errors='ignore').strip()
+    except Exception as e:
         name = "Unknown"
     
     curses.noecho()

@@ -216,15 +216,10 @@ def safe_print(stdscr, y, x, txt, attr=0, large=False):
     """
     h, w = stdscr.getmaxyx()
     # Ajustar Y para el nuevo header de 3 líneas
-    y_adjusted = y + 2 if y > 2 else y
+    y_adjusted = y + 3 if y > 2 else y
     if y_adjusted < h and x < w:
         try: 
-            if large:
-                # Texto más grande usando espacios adicionales
-                txt_large = " ".join(txt)
-                stdscr.addstr(y_adjusted, x, txt_large[:w-x-1], attr)
-            else:
-                stdscr.addstr(y_adjusted, x, txt[:w-x-1], attr)
+            stdscr.addstr(y_adjusted, x, txt[:w-x-1], attr)
         except: pass
 
 def center(stdscr, y, txt, attr=0, large=False):

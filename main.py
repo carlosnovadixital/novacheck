@@ -16,6 +16,7 @@ for venv_path in venv_paths:
     if os.path.exists(venv_path) and venv_path not in sys.path:
         sys.path.insert(0, venv_path)
 
+import curses
 import json
 import datetime
 import time

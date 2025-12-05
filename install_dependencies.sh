@@ -1,9 +1,10 @@
 #!/bin/bash
 # Script de instalación de dependencias para NovaCheck
-# Ejecutar con: sudo bash install_dependencies.sh
+# PARA USAR EN CUBIC (entorno chroot)
 
 echo "========================================="
 echo "  INSTALACIÓN DE DEPENDENCIAS NOVACHECK"
+echo "  (Para entorno Cubic/chroot)"
 echo "========================================="
 echo ""
 
@@ -14,7 +15,7 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 echo "Actualizando repositorios..."
-apt update
+apt update -y
 
 echo ""
 echo "========================================="

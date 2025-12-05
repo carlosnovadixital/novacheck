@@ -21,35 +21,26 @@ echo "========================================="
 echo "1. PYTHON Y HERRAMIENTAS BÁSICAS"
 echo "========================================="
 
-apt install -y python3 python3-pip python3-venv python3-numpy
+apt install -y python3 python3-pip python3-numpy
 
 echo "Instalando pygame (para audio L/R)..."
 apt install -y python3-pygame
 
 echo ""
 echo "========================================="
-echo "2. CONFIGURANDO VIRTUALENV"
+echo "2. INSTALANDO PYNPUT GLOBALMENTE"
 echo "========================================="
 
-VENV_PATH="/home/novacheck/venv"
-
-if [ ! -d "$VENV_PATH" ]; then
-    echo "Creando virtualenv en $VENV_PATH..."
-    python3 -m venv "$VENV_PATH"
-fi
-
-echo "Activando virtualenv..."
-source "$VENV_PATH/bin/activate"
+echo "Actualizando pip..."
+pip3 install --upgrade pip
 
 echo "Instalando pynput (para test de teclado)..."
-pip3 install --upgrade pip
 pip3 install pynput
 
-echo "Instalando pygame y numpy en virtualenv..."
+echo "Instalando pygame y numpy con pip..."
 pip3 install pygame numpy
 
-echo "✓ Virtualenv configurado correctamente"
-deactivate
+echo "✓ Dependencias Python instaladas globalmente"
 
 echo ""
 echo "========================================="
@@ -149,6 +140,26 @@ echo "SISTEMA:"
 check_command python3
 
 echo ""
+echo "PYTHON MODULES:"
+if python3 -c "import pynput" 2>/dev/null; then
+    echo "✓ pynput instalado correctamente"
+else
+    echo "✗ pynput NO encontrado"
+fi
+
+if python3 -c "import pygame" 2>/dev/null; then
+    echo "✓ pygame instalado correctamente"
+else
+    echo "✗ pygame NO encontrado"
+fi
+
+if python3 -c "import numpy" 2>/dev/null; then
+    echo "✓ numpy instalado correctamente"
+else
+    echo "✗ numpy NO encontrado"
+fi
+
+echo ""
 echo "========================================="
 echo "CONFIGURACIÓN DE AUDIO"
 echo "========================================="
@@ -174,6 +185,7 @@ echo "========================================="
 echo ""
 echo "Resumen:"
 echo "  ✓ Python 3 y herramientas básicas"
+echo "  ✓ pynput, pygame, numpy (GLOBAL)"
 echo "  ✓ Sox y ALSA (audio)"
 echo "  ✓ Smartmontools (discos)"
 echo "  ✓ Herramientas de hardware"
@@ -181,7 +193,4 @@ echo "  ✓ Utilidades de sistema"
 echo ""
 echo "Para ejecutar NovaCheck:"
 echo "  sudo python3 /app/main.py"
-echo ""
-echo "Para probar audio:"
-echo "  bash /app/test_audio_devices.sh"
 echo ""

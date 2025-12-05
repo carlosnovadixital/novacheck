@@ -1,7 +1,8 @@
 #!/bin/bash
-# Script para ejecutar NovaCheck con virtualenv
+# Script para ejecutar NovaCheck
+# Las dependencias deben estar instaladas GLOBALMENTE
+# (no se usa virtualenv porque el script corre como daemon)
 
-VENV_PATH="/home/novacheck/venv"
 SCRIPT_PATH="/app/main.py"
 
 echo "========================================="
@@ -9,61 +10,49 @@ echo "  NOVACHECK - Iniciando"
 echo "========================================="
 echo ""
 
-# Verificar si existe virtualenv
-if [ -d "$VENV_PATH" ]; then
-    echo "✓ Virtualenv encontrado en $VENV_PATH"
-    
-    # Activar virtualenv
-    source "$VENV_PATH/bin/activate"
-    
-    # Verificar pynput
-    if python3 -c "import pynput" 2>/dev/null; then
-        echo "✓ pynput instalado correctamente"
-    else
-        echo "✗ pynput no encontrado en virtualenv"
-        echo "  Instalando pynput..."
-        pip3 install pynput
-    fi
-    
-    # Verificar pygame
-    if python3 -c "import pygame" 2>/dev/null; then
-        echo "✓ pygame instalado correctamente"
-    else
-        echo "✗ pygame no encontrado"
-        echo "  Instalando pygame..."
-        pip3 install pygame
-    fi
-    
-    # Verificar numpy
-    if python3 -c "import numpy" 2>/dev/null; then
-        echo "✓ numpy instalado correctamente"
-    else
-        echo "✗ numpy no encontrado"
-        echo "  Instalando numpy..."
-        pip3 install numpy
-    fi
-    
-    echo ""
-    echo "Ejecutando NovaCheck..."
-    python3 "$SCRIPT_PATH"
-    
-else
-    echo "⚠ Virtualenv no encontrado en $VENV_PATH"
-    echo "  Creando virtualenv..."
-    
-    # Crear virtualenv
-    python3 -m venv "$VENV_PATH"
-    
-    # Activar
-    source "$VENV_PATH/bin/activate"
-    
-    # Instalar dependencias
-    echo "  Instalando dependencias..."
-    pip3 install --upgrade pip
-    pip3 install pynput pygame numpy
-    
-    echo ""
-    echo "✓ Virtualenv creado y configurado"
-    echo "  Ejecutando NovaCheck..."
-    python3 "$SCRIPT_PATH"
+# Verificar si Python 3 está disponible
+if ! command -v python3 &> /dev/null; then
+    echo "✗ Python 3 no encontrado"
+    echo "  Instala con: sudo apt install python3"
+    exit 1
 fi
+
+echo "✓ Python 3 encontrado"
+
+# Verificar pynput (CRÍTICO para test de teclado)
+if python3 -c "import pynput" 2>/dev/null; then
+    echo "✓ pynput instalado correctamente"
+else
+    echo "✗ pynput no encontrado"
+    echo "  Instalando pynput..."
+    pip3 install pynput
+    if python3 -c "import pynput" 2>/dev/null; then
+        echo "✓ pynput instalado"
+    else
+        echo "✗ ERROR: No se pudo instalar pynput"
+        exit 1
+    fi
+fi
+
+# Verificar pygame
+if python3 -c "import pygame" 2>/dev/null; then
+    echo "✓ pygame instalado correctamente"
+else
+    echo "✗ pygame no encontrado"
+    echo "  Instalando pygame..."
+    pip3 install pygame
+fi
+
+# Verificar numpy
+if python3 -c "import numpy" 2>/dev/null; then
+    echo "✓ numpy instalado correctamente"
+else
+    echo "✗ numpy no encontrado"
+    echo "  Instalando numpy..."
+    pip3 install numpy
+fi
+
+echo ""
+echo "Ejecutando NovaCheck..."
+echo ""
+python3 "$SCRIPT_PATH"

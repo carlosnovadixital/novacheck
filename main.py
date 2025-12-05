@@ -762,123 +762,145 @@ def map_key(k):
 
 def screen_keyboard_vis(stdscr):
     """
-    Método UNIVERSAL de test de teclado - NO depende de layout específico
-    Simplemente muestra las teclas que se van pulsando en tiempo real
+    Test de teclado con layout visual simple
     """
     stdscr.clear()
-    draw_header(stdscr, "TEST DE TECLADO UNIVERSAL")
+    h, w = stdscr.getmaxyx()
     
-    center(stdscr, 6, "════════════════════════════════════════", curses.A_BOLD)
-    center(stdscr, 7, "  PRUEBA DE TECLADO  ", curses.A_BOLD | curses.color_pair(6))
-    center(stdscr, 8, "════════════════════════════════════════", curses.A_BOLD)
+    # Header
+    try:
+        stdscr.addstr(0, 0, "=" * (w-1), curses.color_pair(4)|curses.A_BOLD)
+        stdscr.addstr(1, 0, " TEST DE TECLADO ".center(w-1), curses.color_pair(4)|curses.A_BOLD)
+        stdscr.addstr(2, 0, "=" * (w-1), curses.color_pair(4)|curses.A_BOLD)
+    except: pass
     
-    center(stdscr, 11, "INSTRUCCIONES:", curses.A_BOLD | curses.color_pair(6))
-    center(stdscr, 13, "• Pulsa TODAS las teclas de tu teclado")
-    center(stdscr, 14, "• Verás aparecer cada tecla en la lista")
-    center(stdscr, 15, "• Presiona [ESC] 3 veces para terminar")
+    # Instrucciones
+    try:
+        stdscr.addstr(4, 2, "INSTRUCCIONES: Pulsa todas las teclas | [F10] para terminar", 
+                     curses.A_BOLD | curses.color_pair(6))
+    except: pass
     
-    center(stdscr, 18, "Presiona cualquier tecla para comenzar...", curses.A_DIM)
-    stdscr.refresh()
-    stdscr.getch()
+    # Layout simplificado - matriz de teclas
+    keyboard_layout = [
+        ["ESC", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12"],
+        ["`", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "=", "BKSP"],
+        ["TAB", "Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P", "[", "]", "\\"],
+        ["CAPS", "A", "S", "D", "F", "G", "H", "J", "K", "L", ";", "'", "Ñ", "ENTER"],
+        ["SHIFT", "Z", "X", "C", "V", "B", "N", "M", ",", ".", "/", "Ç"],
+        ["CTRL", "ALT", "SPACE", "ALTGR"]
+    ]
     
-    pressed_keys = []
-    pressed_set = set()
-    esc_count = 0
+    pressed = set()
     stdscr.nodelay(True)
     stdscr.timeout(100)
     
     while True:
-        stdscr.clear()
-        draw_header(stdscr, "TEST DE TECLADO - EN PROGRESO")
+        # Limpiar área de trabajo
+        for i in range(6, 24):
+            try:
+                stdscr.addstr(i, 0, " " * (w-1))
+            except: pass
         
-        # Instrucciones compactas
-        safe_print(stdscr, 4, 4, "INSTRUCCIONES: Pulsa todas las teclas | [ESC] 3 veces para terminar", 
-                  curses.A_BOLD | curses.color_pair(6))
+        # Contador
+        try:
+            stdscr.addstr(6, 2, f"— TECLAS PRESIONADAS: {len(pressed)} —", 
+                         curses.color_pair(2) | curses.A_BOLD)
+        except: pass
         
-        # Contador grande
-        safe_print(stdscr, 6, 4, f"═══ TECLAS PRESIONADAS: {len(pressed_set)} ═══", 
-                  curses.color_pair(2) | curses.A_BOLD)
+        # Barra de progreso
+        try:
+            progress = min(len(pressed), 50)
+            bar = "█" * progress + "░" * (50 - progress)
+            stdscr.addstr(7, 2, f"[{bar}]")
+        except: pass
         
-        # Barra de progreso visual
-        progress = min(len(pressed_set), 50)
-        bar = "█" * progress + "░" * (50 - progress)
-        safe_print(stdscr, 7, 4, f"[{bar}]")
-        
-        # Lista de teclas presionadas (últimas 40)
-        safe_print(stdscr, 9, 4, "TECLAS DETECTADAS:", curses.A_BOLD | curses.A_UNDERLINE)
-        
-        start_row = 10
-        max_display = 15  # Máximo número de filas
-        cols = 5  # Número de columnas
-        
-        # Mostrar en formato de columnas
-        display_keys = pressed_keys[-60:]  # Últimas 60 teclas
-        for idx, key in enumerate(display_keys):
-            col_num = idx % cols
-            row_num = idx // cols
-            if row_num < max_display:
-                x_pos = 6 + (col_num * 15)
-                y_pos = start_row + row_num
-                safe_print(stdscr, y_pos, x_pos, f"• {key}", curses.color_pair(5))
-        
-        # Indicador ESC
-        if esc_count > 0:
-            safe_print(stdscr, start_row + max_display + 2, 4, 
-                      f"ESC presionado: {esc_count}/3", 
-                      curses.color_pair(3) | curses.A_BOLD)
+        # Dibujar teclado
+        start_y = 9
+        for row_idx, row in enumerate(keyboard_layout):
+            x = 2
+            y = start_y + row_idx * 2
+            
+            for key in row:
+                # Determinar si está presionada
+                attr = curses.color_pair(5) | curses.A_BOLD if key in pressed else curses.color_pair(1)
+                
+                # Dibujar tecla
+                try:
+                    key_display = f"[{key:^5s}]"
+                    stdscr.addstr(y, x, key_display, attr)
+                    x += len(key_display) + 1
+                except: pass
         
         stdscr.refresh()
         
+        # Leer tecla
         try:
             k = stdscr.getch()
         except:
             k = -1
         
         if k != -1:
-            # Detectar ESC (código 27)
-            if k == 27:
-                esc_count += 1
-                if esc_count >= 3:
-                    break
-            else:
-                esc_count = 0  # Reset si se pulsa otra tecla
+            # F10 para terminar
+            if k == curses.KEY_F10 or k == 276:  # F10
+                break
             
-            # Mapear la tecla
+            # Mapear tecla
             char = map_key(k)
             
-            # Si no hay mapeo, usar el código directamente
-            if not char:
-                char = f"KEY_{k}"
+            # Teclas especiales adicionales
+            if k == curses.KEY_F1: char = "F1"
+            elif k == curses.KEY_F2: char = "F2"
+            elif k == curses.KEY_F3: char = "F3"
+            elif k == curses.KEY_F4: char = "F4"
+            elif k == curses.KEY_F5: char = "F5"
+            elif k == curses.KEY_F6: char = "F6"
+            elif k == curses.KEY_F7: char = "F7"
+            elif k == curses.KEY_F8: char = "F8"
+            elif k == curses.KEY_F9: char = "F9"
+            elif k == curses.KEY_F11: char = "F11"
+            elif k == curses.KEY_F12: char = "F12"
+            elif k == 27: char = "ESC"
+            elif k == 260: char = "LEFT"
+            elif k == 261: char = "RIGHT"
+            elif k == 259: char = "UP"
+            elif k == 258: char = "DOWN"
+            elif k == 339: char = "PGUP"
+            elif k == 338: char = "PGDN"
+            elif k == 262: char = "HOME"
+            elif k == 360: char = "END"
+            elif k == 330: char = "DEL"
+            elif k == 331: char = "INS"
             
-            # Agregar a la lista si no está duplicada consecutivamente
-            if not pressed_keys or pressed_keys[-1] != char:
-                pressed_keys.append(char)
-                pressed_set.add(char)
+            # Agregar a presionadas
+            if char:
+                pressed.add(char)
         
-        time.sleep(0.05)  # Pequeña pausa para no saturar CPU
+        time.sleep(0.05)
     
     stdscr.nodelay(False)
     
-    # Pantalla de resumen
+    # Resumen
     stdscr.clear()
-    draw_header(stdscr, "TEST DE TECLADO - COMPLETADO")
-    
-    center(stdscr, 8, "════════════════════════════════════════", curses.A_BOLD)
-    center(stdscr, 9, f"  TOTAL: {len(pressed_set)} TECLAS DETECTADAS  ", 
-           curses.color_pair(2) | curses.A_BOLD)
-    center(stdscr, 10, "════════════════════════════════════════", curses.A_BOLD)
-    
-    # Determinar resultado
-    if len(pressed_set) >= 30:
-        center(stdscr, 13, "✓ TEST PASADO", curses.color_pair(2) | curses.A_BOLD)
-        result = "OK"
-    else:
-        center(stdscr, 13, "✗ Pocas teclas detectadas", curses.color_pair(3) | curses.A_BOLD)
-        result = "FAIL"
-    
-    center(stdscr, 16, "Presiona cualquier tecla para continuar...")
-    stdscr.refresh()
-    stdscr.getch()
+    try:
+        stdscr.addstr(0, 0, "=" * (w-1), curses.color_pair(4)|curses.A_BOLD)
+        stdscr.addstr(1, 0, " TEST DE TECLADO - COMPLETADO ".center(w-1), curses.color_pair(4)|curses.A_BOLD)
+        stdscr.addstr(2, 0, "=" * (w-1), curses.color_pair(4)|curses.A_BOLD)
+        
+        stdscr.addstr(8, 20, "════════════════════════════════════════")
+        stdscr.addstr(9, 20, f"  TOTAL: {len(pressed)} TECLAS  ", curses.color_pair(2) | curses.A_BOLD)
+        stdscr.addstr(10, 20, "════════════════════════════════════════")
+        
+        if len(pressed) >= 30:
+            stdscr.addstr(13, 30, "✓ TEST PASADO", curses.color_pair(2) | curses.A_BOLD)
+            result = "OK"
+        else:
+            stdscr.addstr(13, 25, "✗ Pocas teclas detectadas", curses.color_pair(3) | curses.A_BOLD)
+            result = "FAIL"
+        
+        stdscr.addstr(16, 20, "Presiona cualquier tecla para continuar...")
+        stdscr.refresh()
+        stdscr.getch()
+    except: pass
     
     return result
 

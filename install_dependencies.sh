@@ -99,7 +99,7 @@ apt install -y lshw
 
 echo ""
 echo "========================================="
-echo "4. HERRAMIENTAS DE RED"
+echo "5. HERRAMIENTAS DE RED"
 echo "========================================="
 
 # Para test de WiFi

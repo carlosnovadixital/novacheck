@@ -571,11 +571,20 @@ def detect_audio_devices():
     
     return devices
 
-def play_audio_test(channel='both'):
+def play_audio_test(channel='both', kill_pipewire=False):
     """
     Prueba varios métodos de reproducción de audio hasta encontrar uno que funcione
+    kill_pipewire: Si True, mata pipewire antes de intentar
     """
-    log_debug(f"=== Probando reproducción de audio para canal: {channel} ===")
+    log_debug(f"=== Probando reproducción de audio para canal: {channel} (kill_pipewire={kill_pipewire}) ===")
+    
+    if kill_pipewire:
+        log_debug("Matando pipewire/pulseaudio para acceso ALSA directo...")
+        subprocess.run("killall -9 pipewire pipewire-pulse wireplumber pulseaudio 2>/dev/null", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        import time
+        time.sleep(2)
+        fix_audio_mixer()
+        time.sleep(1)
     
     # Método 1: pygame con mixer completo
     try:

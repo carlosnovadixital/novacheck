@@ -1492,5 +1492,13 @@ def main(stdscr):
 
 if __name__ == "__main__":
     if os.geteuid()!=0: print("ROOT REQUIRED"); exit()
-    try: curses.wrapper(main)
-    except Exception as e: print(e)
+    try: 
+        curses.wrapper(main)
+    except Exception as e: 
+        log_debug(f"EXCEPCIÓN PRINCIPAL: {e}")
+        import traceback
+        log_debug(traceback.format_exc())
+        print(f"Error: {e}")
+        print("Presiona ENTER para apagar...")
+        input()
+        os.system("poweroff")

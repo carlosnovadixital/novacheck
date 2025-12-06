@@ -597,12 +597,6 @@ def play_audio_pygame(channel='both'):
         
         log_debug(f"=== Iniciando play_audio_pygame para canal: {channel} ===")
         
-        # Silenciar mensajes de pygame y ALSA
-        os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
-        os.environ['SDL_AUDIODRIVER'] = 'alsa'
-        
-        log_debug("Variables de entorno configuradas")
-        
         # Redirigir stderr temporalmente pero guardarlo en log
         import sys
         old_stderr = sys.stderr

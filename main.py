@@ -2,6 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import sys, os, time, subprocess, datetime, shutil, json, curses
+import warnings
+
+# Silenciar todos los RuntimeWarnings (incluido AVX2 de pygame)
+warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 # Silenciar mensajes de pygame y ALSA ANTES de cualquier import
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'

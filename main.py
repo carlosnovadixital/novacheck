@@ -1474,11 +1474,18 @@ def main(stdscr):
         stdscr.nodelay(False)  # CRÍTICO: Asegurar que espera
         stdscr.refresh()
         
-        # Esperar indefinidamente hasta Q
-        while True:
-            key = stdscr.getch()
-            if key in [ord('q'), ord('Q')]:
-                break
+        # Si NO se hizo WIPE, permitir ENTER/SPACE para apagar también
+        if results.get('wipe') == 'SKIP':
+            while True:
+                key = stdscr.getch()
+                if key in [ord('q'), ord('Q'), 32, 10, 13]:  # Q, SPACE, ENTER
+                    break
+        else:
+            # Si se hizo WIPE, solo Q apaga
+            while True:
+                key = stdscr.getch()
+                if key in [ord('q'), ord('Q')]:
+                    break
         
         # Usuario presionó Q - apagar
         stdscr.clear()

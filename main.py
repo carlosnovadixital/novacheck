@@ -533,10 +533,8 @@ def screen_auto(stdscr):
             r+=1
     res["smart"]=sm
     
-    r+=2
-    center(stdscr, r, "[ Presiona ENTER para continuar ]", curses.color_pair(6) | curses.A_BOLD)
-    stdscr.refresh()
-    while stdscr.getch() not in [10,13]: pass
+    # Continuar automáticamente sin esperar ENTER
+    time.sleep(1)
     return res
 
 def detect_audio_devices():

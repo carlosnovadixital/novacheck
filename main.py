@@ -1271,30 +1271,7 @@ def main(stdscr):
                 else:
                     results['wipe'] = screen_wipe(stdscr)
             
-            # Mostrar navegación después de la prueba (excepto para algunas)
-            if test['name'] not in ['WiFi', 'Técnico', 'Hardware']:
-                stdscr.clear()
-                draw_header(stdscr, f"{test['name']} - COMPLETADO")
-                
-                try:
-                    stdscr.addstr(10, 10, f"Prueba de {test['name']} completada", curses.A_BOLD)
-                    stdscr.addstr(12, 10, "[SPACE/ENTER] = Siguiente prueba", curses.color_pair(2))
-                    stdscr.addstr(13, 10, "[B] = Volver atrás", curses.color_pair(6))
-                    stdscr.addstr(14, 10, "[R] = Repetir esta prueba", curses.color_pair(6))
-                    stdscr.refresh()
-                except: pass
-                
-                action = wait_for_navigation(stdscr)
-                
-                if action == 'back':
-                    current_test -= 1
-                    continue
-                elif action == 'repeat':
-                    continue  # No incrementar current_test
-                elif action == 'quit':
-                    break
-            
-            # Avanzar a siguiente prueba
+            # Avanzar automáticamente a siguiente prueba (sin navegación)
             current_test += 1
             
         except Exception as e:

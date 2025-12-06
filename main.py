@@ -661,10 +661,14 @@ def play_audio_pygame(channel='both'):
             sys.stderr = old_stderr
             sys.stdout = old_stdout
         
-    except ImportError:
+    except ImportError as e:
+        log_debug(f"ImportError en pygame: {e}")
         # Fallback a sox si pygame no está disponible
         return play_simple_audio_test_fallback()
     except Exception as e:
+        log_debug(f"Error en play_audio_pygame: {type(e).__name__}: {e}")
+        import traceback
+        log_debug(f"Traceback:\n{traceback.format_exc()}")
         return False
 
 def play_simple_audio_test_fallback():

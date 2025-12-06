@@ -801,11 +801,11 @@ def screen_speakers(stdscr):
     
     key = stdscr.getch()
     log_debug(f"Tecla capturada para LEFT: {key}")
-    if key in [32, 10, 13]:
+    if key in [32, 10, 13, 115, 83]:  # SPACE, ENTER, 's', 'S'
         res["L"]="OK"
         log_debug("LEFT marcado como OK")
     else:
-        log_debug(f"LEFT marcado como FAIL (tecla {key} no es SPACE/ENTER)")
+        log_debug(f"LEFT marcado como FAIL (tecla {key} no válida)")
     
     # PRUEBA ALTAVOZ DERECHO (RIGHT)
     stdscr.erase()

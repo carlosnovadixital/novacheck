@@ -1429,6 +1429,8 @@ def main(stdscr):
             
             current_test += 1
     
+    log_debug(f"=== Loop de tests completado. Total ejecutados: {current_test} ===")
+    
     # Calcular resultado final
     log_debug("=== Calculando resultado final ===")
     final = "PASS"

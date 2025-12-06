@@ -601,11 +601,6 @@ def play_audio_pygame(channel='both'):
         
         log_debug(f"=== Iniciando play_audio_pygame para canal: {channel} ===")
         
-        # Inicializar SOLO el módulo de audio, NO video
-        os.environ['SDL_VIDEODRIVER'] = 'dummy'
-        pygame.init()
-        pygame.display.set_mode((1,1))  # Ventana mínima invisible
-        
         # Redirigir stderr temporalmente pero guardarlo en log
         import sys
         old_stderr = sys.stderr

@@ -428,29 +428,25 @@ def screen_usb_interactive(stdscr):
     center(stdscr, 14, "╔═══════════════════════════════════════╗", curses.color_pair(4))
     center(stdscr, 15, "║  CONECTA UN RATÓN O PENDRIVE AHORA   ║", curses.color_pair(4) | curses.A_BLINK | curses.A_BOLD)
     center(stdscr, 16, "╚═══════════════════════════════════════╝", curses.color_pair(4))
-    center(stdscr, 19, "Esperando dispositivo... (15 segundos)", curses.A_DIM)
-    center(stdscr, 21, "[S] Saltar si no hay dispositivo USB", curses.color_pair(3))
+    center(stdscr, 19, "Esperando dispositivo...", curses.A_DIM)
+    center(stdscr, 21, "[N] No hay USB - Continuar sin probar", curses.color_pair(3))
     stdscr.refresh()
     stdscr.nodelay(True)
     
-    start = time.time()
     detected = False
-    elapsed = 0
     
-    while time.time() - start < 15:
+    # Esperar indefinidamente hasta detectar USB o presionar N
+    while True:
         curr_usb = run_cmd("lsusb").splitlines()
         if len(curr_usb) > count_base:
             detected = True
             break
         
-        # Actualizar contador
-        elapsed = int(time.time() - start)
-        remaining = 15 - elapsed
-        center(stdscr, 19, f"Esperando dispositivo... ({remaining} segundos)  ", curses.A_DIM)
         stdscr.refresh()
         
         try:
-            if stdscr.getch() in [ord('s'), ord('S')]: 
+            key = stdscr.getch()
+            if key in [ord('n'), ord('N')]: 
                 break
         except: 
             pass

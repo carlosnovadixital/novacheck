@@ -578,8 +578,14 @@ def play_audio_pygame(channel='both'):
     """
     try:
         import numpy as np
-        import pygame
         import os
+        
+        # NO importar pygame directamente, solo mixer
+        os.environ['SDL_VIDEODRIVER'] = 'dummy'
+        os.environ['SDL_AUDIODRIVER'] = 'alsa'
+        
+        import pygame.mixer
+        import pygame.sndarray
         
         log_debug(f"=== Iniciando play_audio_pygame para canal: {channel} ===")
         

@@ -873,15 +873,9 @@ def screen_speakers(stdscr):
     
     log_debug("=== Iniciando test de SPEAKERS ===")
     
-    # Matar pipewire y pulseaudio para acceso directo a ALSA
-    log_debug("Matando pipewire y pulseaudio...")
-    subprocess.run("killall -9 pipewire pipewire-pulse wireplumber pulseaudio 2>/dev/null", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    time.sleep(2)
-    
-    # Inicializar audio silenciosamente
-    log_debug("Inicializando mixer de audio...")
-    fix_audio_mixer()
-    time.sleep(1)
+    # NO matar pipewire - intentar primero con el sistema tal como está
+    # Si falla, play_audio_test probará múltiples métodos
+    log_debug("Dejando pipewire/pulseaudio activos para compatibilidad")
     
     # PRUEBA ALTAVOZ IZQUIERDO (LEFT)
     stdscr.erase()

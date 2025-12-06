@@ -893,9 +893,9 @@ def screen_microphone(stdscr):
     except: pass
     
     time.sleep(2)
-    res["MIC"]=st
     
-    return "OK" if res["L"]=="OK" and res["R"]=="OK" and res["MIC"]=="OK" else "FAIL"
+    log_debug(f"Resultado MICRÓFONO: {st}")
+    return st
 
 def screen_visual(stdscr):
     cols=[(curses.COLOR_RED,"ROJO"),(curses.COLOR_GREEN,"VERDE"),(curses.COLOR_BLUE,"AZUL"),(curses.COLOR_WHITE,"BLANCO")]

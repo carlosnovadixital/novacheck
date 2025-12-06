@@ -1320,7 +1320,8 @@ def main(stdscr):
     
     # Calcular resultado final
     final = "PASS"
-    if results['audio'] != "OK": final = "FAIL"
+    if results.get('speakers') != "OK": final = "FAIL"
+    if results.get('microphone') != "OK": final = "FAIL"
     if results['visual'] == "FAIL": final = "FAIL"
     if results['keyboard'] != "OK": final = "FAIL"
     if results['wipe'] == "FAIL": final = "FAIL"

@@ -1442,22 +1442,54 @@ def main(stdscr):
     # Enviar a servidor
     ok, msg = send_to_server(hw, final, results, results['wipe'], tech)
     
-    # Pantalla final
-    stdscr.clear()
-    draw_header(stdscr, "INFORME FINAL")
-    r=4
-    safe_print(stdscr, r, 2, f"RESULTADO: {final}", curses.color_pair(2 if final=="PASS" else 3)); r+=2
-    safe_print(stdscr, r, 2, f"SERVIDOR: {'ENVIADO' if ok else msg}", curses.color_pair(2 if ok else 3)); r+=2
+    # Pantalla final - DEBE ESPERAR
+    try:
+        stdscr.clear()
+        draw_header(stdscr, "INFORME FINAL")
+        r=4
+        safe_print(stdscr, r, 2, "═══════════════════════════════════════", curses.A_BOLD)
+        r+=1
+        safe_print(stdscr, r, 2, f"RESULTADO: {final}", curses.color_pair(2 if final=="PASS" else 3) | curses.A_BOLD); r+=2
+        safe_print(stdscr, r, 2, f"SERVIDOR: {'ENVIADO' if ok else msg}", curses.color_pair(2 if ok else 3) | curses.A_BOLD); r+=2
+        safe_print(stdscr, r, 2, "═══════════════════════════════════════", curses.A_BOLD)
+        r+=3
+        
+        if shutil.which("qrencode"):
+            try:
+                qr = subprocess.run(["qrencode","-t","ASCII",f"{hw['serial']}|{final}"],capture_output=True,text=True).stdout.splitlines()
+                for l in qr: safe_print(stdscr, r, 4, l); r+=1
+            except: pass
+        
+        h,w=stdscr.getmaxyx()
+        r = h - 3
+        safe_print(stdscr, r, 2, "═══════════════════════════════════════", curses.color_pair(6) | curses.A_BOLD)
+        r+=1
+        safe_print(stdscr, r, 2, "Presiona [Q] para APAGAR el equipo", curses.color_pair(6) | curses.A_BOLD | curses.A_BLINK)
+        
+        stdscr.nodelay(False)  # CRÍTICO: Asegurar que espera
+        stdscr.refresh()
+        
+        # Esperar indefinidamente hasta Q
+        while True:
+            key = stdscr.getch()
+            if key in [ord('q'), ord('Q')]:
+                break
+        
+        # Mensaje antes de apagar
+        stdscr.clear()
+        center(stdscr, h//2, "Apagando...", curses.A_BOLD)
+        stdscr.refresh()
+        time.sleep(1)
+        
+    except Exception as e:
+        # Si hay error, mostrar en pantalla antes de apagar
+        log_debug(f"Error en pantalla final: {e}")
+        stdscr.clear()
+        stdscr.addstr(10, 10, f"Error: {e}")
+        stdscr.addstr(12, 10, "Presiona cualquier tecla...")
+        stdscr.refresh()
+        stdscr.getch()
     
-    if shutil.which("qrencode"):
-        try:
-            qr = subprocess.run(["qrencode","-t","ASCII",f"{hw['serial']}|{final}"],capture_output=True,text=True).stdout.splitlines()
-            for l in qr: safe_print(stdscr, r, 4, l); r+=1
-        except: pass
-    
-    h,w=stdscr.getmaxyx()
-    safe_print(stdscr, h-1, 2, "[Q] Apagar")
-    while stdscr.getch() not in [ord('q'),ord('Q')]: pass
     os.system("poweroff")
 
 if __name__ == "__main__":

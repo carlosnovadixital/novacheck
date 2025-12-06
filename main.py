@@ -3,6 +3,11 @@
 
 import sys, os, time, subprocess, datetime, shutil, json, curses
 
+# Silenciar mensajes de pygame y ALSA ANTES de cualquier import
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
+os.environ['SDL_AUDIODRIVER'] = 'alsa'
+os.environ['PYGAME_DETECT_AVX2'] = '0'  # Silenciar warning de AVX2
+
 # Configurar logging antes de cualquier cosa
 LOG_FILE = "/tmp/novacheck_debug.log"
 log_handle = open(LOG_FILE, 'w')

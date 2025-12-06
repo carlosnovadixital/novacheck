@@ -582,18 +582,28 @@ def play_audio_test(channel='both', kill_pipewire=False):
         fix_audio_mixer()
         time.sleep(1)
     
-    # Método 1: pygame con mixer completo
+    # Método 1: pygame solo mixer (sin init completo)
     try:
-        log_debug("Método 1: Intentando pygame completo...")
+        log_debug("Método 1: Intentando pygame mixer directo...")
         
-        # Forzar que pygame NO toque el display/video
         import os
+        # Forzar que SDL NO use video
         os.environ['SDL_VIDEODRIVER'] = 'dummy'
-        os.environ['SDL_VIDEO_WINDOW_POS'] = '0,0'
-        os.environ['SDL_VIDEO_CENTERED'] = '0'
         
-        import pygame
         import numpy as np
+        
+        # Importar solo pygame.mixer, NO pygame completo
+        import pygame.mixer
+        import pygame.time
+        try:
+            import pygame.sndarray
+        except:
+            # Si sndarray no está, usar pygame completo
+            import pygame
+            pygame.init()
+            import pygame.sndarray as sndarray_module
+        else:
+            sndarray_module = pygame.sndarray
         
         frequency = 800
         duration = 1.5

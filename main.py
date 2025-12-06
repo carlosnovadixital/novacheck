@@ -638,7 +638,27 @@ def play_audio_pygame(channel='both'):
             except:
                 pass
             
-            pygame.mixer.init(frequency=sample_rate, size=-16, channels=2, buffer=1024, devicename='default')
+            # Intentar inicializar con varios dispositivos
+            init_success = False
+            device_attempts = [None, 'default', 'hw:0,0', 'plughw:0,0']
+            
+            for device in device_attempts:
+                try:
+                    log_debug(f"Intentando inicializar pygame.mixer con device={device}")
+                    if device:
+                        pygame.mixer.init(frequency=sample_rate, size=-16, channels=2, buffer=1024, devicename=device)
+                    else:
+                        pygame.mixer.init(frequency=sample_rate, size=-16, channels=2, buffer=1024)
+                    init_success = True
+                    log_debug(f"Inicialización exitosa con device={device}")
+                    break
+                except Exception as e:
+                    log_debug(f"Falló con device={device}: {e}")
+                    continue
+            
+            if not init_success:
+                log_debug("No se pudo inicializar pygame.mixer con ningún dispositivo")
+                return False
             
             # Crear y reproducir sonido
             sound = pygame.sndarray.make_sound(stereo)

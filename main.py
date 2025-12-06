@@ -902,8 +902,13 @@ def screen_speakers(stdscr):
     
     time.sleep(1)
     
-    # Reproducir solo en canal LEFT
-    play_audio_test('left')
+    # Reproducir solo en canal LEFT - primer intento con pipewire
+    success = play_audio_test('left', kill_pipewire=False)
+    
+    # Si falló, reintentar matando pipewire
+    if not success:
+        log_debug("LEFT falló con pipewire activo, reintentando sin pipewire...")
+        success = play_audio_test('left', kill_pipewire=True)
     
     time.sleep(1)
     

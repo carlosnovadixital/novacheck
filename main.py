@@ -1248,28 +1248,7 @@ def main(stdscr):
                 results['keyboard'] = screen_keyboard_vis(stdscr)
                 
             elif test['name'] == 'Wipe':
-                # Mostrar navegación antes de wipe
-                stdscr.clear()
-                draw_header(stdscr, "NAVEGACIÓN")
-                try:
-                    stdscr.addstr(10, 10, "¿Deseas ejecutar el borrado de disco (WIPE)?", curses.A_BOLD)
-                    stdscr.addstr(12, 10, "[SPACE/ENTER] = Ejecutar WIPE")
-                    stdscr.addstr(13, 10, "[B] = Volver atrás (saltar WIPE)")
-                    stdscr.addstr(14, 10, "[N] = Saltar WIPE y continuar")
-                    stdscr.refresh()
-                except: pass
-                
-                action = wait_for_navigation(stdscr)
-                
-                if action == 'back':
-                    current_test -= 1
-                    continue
-                elif action == 'next':
-                    results['wipe'] = "SKIP"
-                    current_test += 1
-                    continue
-                else:
-                    results['wipe'] = screen_wipe(stdscr)
+                results['wipe'] = screen_wipe(stdscr)
             
             # Avanzar automáticamente a siguiente prueba (sin navegación)
             current_test += 1

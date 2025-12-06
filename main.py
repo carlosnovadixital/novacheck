@@ -143,19 +143,19 @@ def test_smart(dev):
 
 def fix_audio_mixer():
     # 1. Matar PulseAudio
-    subprocess.run("pulseaudio -k", shell=True, stderr=subprocess.DEVNULL)
+    subprocess.run("pulseaudio -k", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     time.sleep(1)
     
     # 2. Inicializar ALSA
-    subprocess.run("alsactl init", shell=True, stderr=subprocess.DEVNULL)
+    subprocess.run("alsactl init", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     
-    # 3. Fuerza bruta en mezclador
+    # 3. Fuerza bruta en mezclador - SILENCIAR COMPLETAMENTE
     for c in [0, 1]:
-        subprocess.run(f"amixer -c {c} set 'Auto-Mute Mode' Disabled", shell=True, stderr=subprocess.DEVNULL)
+        subprocess.run(f"amixer -c {c} set 'Auto-Mute Mode' Disabled 2>/dev/null", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         for t in ["Master", "Speaker", "Headphone", "PCM", "Front", "Capture", "Mic", "Internal Mic", "Digital"]:
-            subprocess.run(f"amixer -c {c} set '{t}' 100% unmute", shell=True, stderr=subprocess.DEVNULL)
-            subprocess.run(f"amixer -c {c} set '{t}' on", shell=True, stderr=subprocess.DEVNULL)
-            subprocess.run(f"amixer -c {c} set '{t}' cap", shell=True, stderr=subprocess.DEVNULL)
+            subprocess.run(f"amixer -c {c} set '{t}' 100% unmute 2>/dev/null", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.run(f"amixer -c {c} set '{t}' on 2>/dev/null", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.run(f"amixer -c {c} set '{t}' cap 2>/dev/null", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 def test_microphone():
     """Busca HW de captura y graba"""

@@ -1408,24 +1408,22 @@ def main(stdscr):
             current_test += 1
             
         except Exception as e:
-            # Error en prueba, mostrar y permitir navegación
+            # Error en prueba - loguear y continuar
+            log_debug(f"ERROR en test {test['name']}: {e}")
+            import traceback
+            log_debug(f"Traceback: {traceback.format_exc()}")
+            
+            # Mostrar error y continuar automáticamente
             stdscr.clear()
             try:
                 stdscr.addstr(10, 10, f"Error en {test['name']}: {str(e)}", curses.color_pair(3))
-                stdscr.addstr(12, 10, "[SPACE/ENTER] = Continuar")
-                stdscr.addstr(13, 10, "[B] = Volver atrás")
-                stdscr.addstr(14, 10, "[R] = Repetir")
+                stdscr.addstr(12, 10, "Continuando en 3 segundos...")
                 stdscr.refresh()
-            except: pass
+                time.sleep(3)
+            except: 
+                pass
             
-            action = wait_for_navigation(stdscr)
-            
-            if action == 'back':
-                current_test -= 1
-            elif action == 'repeat':
-                pass  # No cambiar current_test
-            else:
-                current_test += 1
+            current_test += 1
     
     # Calcular resultado final
     final = "PASS"

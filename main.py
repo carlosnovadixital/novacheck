@@ -743,10 +743,10 @@ def screen_audio_adv(stdscr):
     
     log_debug("=== Iniciando test de audio ===")
     
-    # Matar pulseaudio para evitar conflictos con ALSA
-    log_debug("Matando pulseaudio...")
-    subprocess.run("pulseaudio -k 2>/dev/null", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    time.sleep(1)
+    # Matar pipewire y pulseaudio para acceso directo a ALSA
+    log_debug("Matando pipewire y pulseaudio...")
+    subprocess.run("killall -9 pipewire pipewire-pulse wireplumber pulseaudio 2>/dev/null", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    time.sleep(2)
     
     # Inicializar audio silenciosamente
     log_debug("Inicializando mixer de audio...")

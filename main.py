@@ -690,7 +690,15 @@ def play_audio_test(channel='both'):
         else:
             cmd = "speaker-test -t sine -f 800 -c 2 -l 1"
         
-        result = subprocess.run(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=5)
+        log_debug(f"Método 3: Ejecutando: {cmd}")
+        result = subprocess.run(cmd, shell=True, capture_output=True, timeout=5)
+        log_debug(f"Método 3: returncode={result.returncode}")
+        
+        if result.stderr:
+            log_debug(f"Método 3: stderr={result.stderr.decode()[:200]}")
+        if result.stdout:
+            log_debug(f"Método 3: stdout={result.stdout.decode()[:200]}")
+        
         if result.returncode == 0:
             log_debug("Método 3 exitoso: speaker-test")
             return True

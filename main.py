@@ -1480,22 +1480,22 @@ def main(stdscr):
             if key in [ord('q'), ord('Q')]:
                 break
         
-        # Mensaje antes de apagar
+        # Usuario presionó Q - apagar
         stdscr.clear()
         center(stdscr, h//2, "Apagando...", curses.A_BOLD)
         stdscr.refresh()
         time.sleep(1)
+        os.system("poweroff")
         
     except Exception as e:
         # Si hay error, mostrar en pantalla antes de apagar
         log_debug(f"Error en pantalla final: {e}")
         stdscr.clear()
         stdscr.addstr(10, 10, f"Error: {e}")
-        stdscr.addstr(12, 10, "Presiona cualquier tecla...")
+        stdscr.addstr(12, 10, "Presiona cualquier tecla para apagar...")
         stdscr.refresh()
         stdscr.getch()
-    
-    os.system("poweroff")
+        os.system("poweroff")
 
 if __name__ == "__main__":
     if os.geteuid()!=0: print("ROOT REQUIRED"); exit()

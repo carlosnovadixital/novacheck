@@ -649,11 +649,17 @@ def play_audio_pygame(channel='both'):
                 pygame.time.wait(100)
             
             pygame.mixer.quit()
+            log_debug(f"Audio {channel} reproducido exitosamente")
             return True
         finally:
-            # Restaurar stderr
-            sys.stderr.close()
+            # Capturar y guardar los mensajes antes de restaurar
+            captured = stderr_buffer.getvalue()
+            if captured:
+                log_debug(f"Mensajes capturados durante reproducción:\n{captured}")
+            
+            # Restaurar stderr y stdout
             sys.stderr = old_stderr
+            sys.stdout = old_stdout
         
     except ImportError:
         # Fallback a sox si pygame no está disponible

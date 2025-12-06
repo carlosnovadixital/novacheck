@@ -508,28 +508,12 @@ def screen_auto(stdscr):
     
     # USB Interactivo
     usb_st = screen_usb_interactive(stdscr)
+    res["usb"]=usb_st
+    
+    # Discos (sin mostrar resumen intermedio)
     stdscr.clear()
     draw_header(stdscr, "TESTS AUTOMÁTICOS")
-    
     r=5
-    safe_print(stdscr, r, 4, "RESUMEN DE DIAGNÓSTICO:", curses.A_BOLD | curses.color_pair(6))
-    r+=3
-    
-    safe_print(stdscr, r, 4, "• BATERÍA:", curses.A_BOLD)
-    safe_print(stdscr, r, 20, f"{st} ({msg})", col | curses.A_BOLD)
-    r+=2
-    
-    safe_print(stdscr, r, 4, "• TOUCHPAD:", curses.A_BOLD)
-    safe_print(stdscr, r, 20, tp, curses.color_pair(2 if tp!="NO DETECTADO" else 3) | curses.A_BOLD)
-    r+=2
-    
-    col_usb = curses.color_pair(2 if usb_st=="OK" else 3)
-    safe_print(stdscr, r, 4, "• PUERTO USB:", curses.A_BOLD)
-    safe_print(stdscr, r, 20, usb_st, col_usb | curses.A_BOLD)
-    res["usb"]=usb_st
-    r+=3
-    
-    # Discos
     safe_print(stdscr, r, 4, "• SMART CHECK (Discos):", curses.A_BOLD)
     r+=2
     real_disks = get_real_disks()

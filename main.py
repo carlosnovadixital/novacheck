@@ -590,14 +590,24 @@ def play_audio_pygame(channel='both'):
         import pygame
         import os
         
+        log_debug(f"=== Iniciando play_audio_pygame para canal: {channel} ===")
+        
         # Silenciar mensajes de pygame y ALSA
         os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
         os.environ['SDL_AUDIODRIVER'] = 'alsa'
         
-        # Redirigir stderr temporalmente para silenciar ALSA
+        log_debug("Variables de entorno configuradas")
+        
+        # Redirigir stderr temporalmente pero guardarlo en log
         import sys
         old_stderr = sys.stderr
-        sys.stderr = open(os.devnull, 'w')
+        old_stdout = sys.stdout
+        
+        # Crear un buffer temporal para capturar mensajes
+        import io
+        stderr_buffer = io.StringIO()
+        sys.stderr = stderr_buffer
+        sys.stdout = stderr_buffer
         
         try:
             # Generar tono sinusoidal

@@ -631,15 +631,14 @@ def play_audio_test(channel='both', kill_pipewire=False):
             pass
         
         pygame.mixer.init(frequency=sample_rate, size=-16, channels=2, buffer=1024)
-        sound = pygame.sndarray.make_sound(stereo)
+        sound = sndarray_module.make_sound(stereo)
         sound.play()
         
         while pygame.mixer.get_busy():
-            import time
-            time.sleep(0.1)
+            pygame.time.wait(100)
         
         pygame.mixer.quit()
-        log_debug("Método 1 exitoso: pygame completo")
+        log_debug("Método 1 exitoso: pygame mixer")
         return True
     except Exception as e:
         log_debug(f"Método 1 falló: {e}")

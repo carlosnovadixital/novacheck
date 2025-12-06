@@ -628,6 +628,11 @@ def play_audio_test(channel='both'):
         import subprocess
         import os
         
+        # Verificar que sox existe
+        if not subprocess.run("which sox", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0:
+            log_debug("Método 2: sox no instalado")
+            raise Exception("sox no disponible")
+        
         test_file = f"/tmp/test_audio_{channel}.wav"
         
         # Generar archivo según canal
@@ -638,14 +643,38 @@ def play_audio_test(channel='both'):
         else:
             cmd = f"sox -n -r 44100 -c 2 {test_file} synth 1.5 sine 800"
         
-        subprocess.run(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=5)
+        log_debug(f"Método 2: Ejecutando: {cmd}")
+        result_sox = subprocess.run(cmd, shell=True, capture_output=True, timeout=5)
+        log_debug(f"Método 2: sox returncode={result_sox.returncode}")
+        if result_sox.stderr:
+            log_debug(f"Método 2: sox stderr={result_sox.stderr.decode()[:200]}")
         
-        if os.path.exists(test_file):
-            result = subprocess.run(f"aplay -q {test_file}", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=5)
+        if os.path.exists(test_file) and os.path.getsize(test_file) > 0:
+            log_debug(f"Método 2: Archivo generado: {test_file} ({os.path.getsize(test_file)} bytes)")
+            
+            # Intentar con varios dispositivos
+            for device in [None, "hw:0,0", "hw:1,0", "plughw:0,0", "plughw:1,0"]:
+                try:
+                    if device:
+                        cmd_play = f"aplay -D {device} {test_file}"
+                    else:
+                        cmd_play = f"aplay {test_file}"
+                    
+                    log_debug(f"Método 2: Intentando aplay con device={device}")
+                    result = subprocess.run(cmd_play, shell=True, capture_output=True, timeout=5)
+                    
+                    if result.returncode == 0:
+                        log_debug(f"Método 2 exitoso: sox + aplay con device={device}")
+                        os.remove(test_file)
+                        return True
+                    else:
+                        log_debug(f"Método 2: aplay device={device} falló: {result.stderr.decode()[:100]}")
+                except Exception as e:
+                    log_debug(f"Método 2: aplay device={device} excepción: {e}")
+            
             os.remove(test_file)
-            if result.returncode == 0:
-                log_debug("Método 2 exitoso: sox + aplay")
-                return True
+        else:
+            log_debug(f"Método 2: No se generó archivo o está vacío")
     except Exception as e:
         log_debug(f"Método 2 falló: {e}")
     

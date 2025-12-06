@@ -1408,10 +1408,8 @@ def main(stdscr):
                     results['wipe'] = "SKIP"
             
             # Avanzar automáticamente a siguiente prueba (sin navegación)
+            log_debug(f"Test {test['name']} completado. Avanzando a test {current_test + 1}")
             current_test += 1
-    
-    log_debug(f"=== Loop de tests completado. Total ejecutados: {current_test} ===")
-            log_debug(f"Test {test['name']} completado. Avanzando a test {current_test}")
             
         except Exception as e:
             # Error en prueba - loguear y continuar

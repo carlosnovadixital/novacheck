@@ -571,6 +571,106 @@ def detect_audio_devices():
     
     return devices
 
+def play_audio_test(channel='both'):
+    """
+    Prueba varios métodos de reproducción de audio hasta encontrar uno que funcione
+    """
+    log_debug(f"=== Probando reproducción de audio para canal: {channel} ===")
+    
+    # Método 1: pygame con mixer completo
+    try:
+        log_debug("Método 1: Intentando pygame completo...")
+        import pygame
+        import numpy as np
+        
+        frequency = 800
+        duration = 1.5
+        sample_rate = 44100
+        
+        t = np.linspace(0, duration, int(sample_rate * duration))
+        tone = np.sin(2 * np.pi * frequency * t)
+        tone = (tone * 32767).astype(np.int16)
+        
+        if channel == 'left':
+            left = tone
+            right = np.zeros_like(tone)
+        elif channel == 'right':
+            left = np.zeros_like(tone)
+            right = tone
+        else:
+            left = tone
+            right = tone
+        
+        stereo = np.column_stack((left, right))
+        
+        try:
+            pygame.mixer.quit()
+        except:
+            pass
+        
+        pygame.mixer.init(frequency=sample_rate, size=-16, channels=2, buffer=1024)
+        sound = pygame.sndarray.make_sound(stereo)
+        sound.play()
+        
+        while pygame.mixer.get_busy():
+            import time
+            time.sleep(0.1)
+        
+        pygame.mixer.quit()
+        log_debug("Método 1 exitoso: pygame completo")
+        return True
+    except Exception as e:
+        log_debug(f"Método 1 falló: {e}")
+    
+    # Método 2: sox + aplay
+    try:
+        log_debug("Método 2: Intentando sox + aplay...")
+        import subprocess
+        import os
+        
+        test_file = f"/tmp/test_audio_{channel}.wav"
+        
+        # Generar archivo según canal
+        if channel == 'left':
+            cmd = f"sox -n -r 44100 -c 2 {test_file} synth 1.5 sine 800 remix 1 0"
+        elif channel == 'right':
+            cmd = f"sox -n -r 44100 -c 2 {test_file} synth 1.5 sine 800 remix 0 1"
+        else:
+            cmd = f"sox -n -r 44100 -c 2 {test_file} synth 1.5 sine 800"
+        
+        subprocess.run(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=5)
+        
+        if os.path.exists(test_file):
+            result = subprocess.run(f"aplay -q {test_file}", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=5)
+            os.remove(test_file)
+            if result.returncode == 0:
+                log_debug("Método 2 exitoso: sox + aplay")
+                return True
+    except Exception as e:
+        log_debug(f"Método 2 falló: {e}")
+    
+    # Método 3: speaker-test (sin sox)
+    try:
+        log_debug("Método 3: Intentando speaker-test...")
+        import subprocess
+        
+        if channel == 'left':
+            cmd = "speaker-test -t sine -f 800 -c 2 -s 1 -l 1"
+        elif channel == 'right':
+            cmd = "speaker-test -t sine -f 800 -c 2 -s 2 -l 1"
+        else:
+            cmd = "speaker-test -t sine -f 800 -c 2 -l 1"
+        
+        result = subprocess.run(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=5)
+        if result.returncode == 0:
+            log_debug("Método 3 exitoso: speaker-test")
+            return True
+    except Exception as e:
+        log_debug(f"Método 3 falló: {e}")
+    
+    log_debug("Todos los métodos fallaron")
+    return False
+
 def play_audio_pygame(channel='both'):
     """
     Reproduce audio usando pygame con control preciso de canales L/R

@@ -589,6 +589,13 @@ def play_audio_test(channel='both', kill_pipewire=False):
     # Método 1: pygame con mixer completo
     try:
         log_debug("Método 1: Intentando pygame completo...")
+        
+        # Forzar que pygame NO toque el display/video
+        import os
+        os.environ['SDL_VIDEODRIVER'] = 'dummy'
+        os.environ['SDL_VIDEO_WINDOW_POS'] = '0,0'
+        os.environ['SDL_VIDEO_CENTERED'] = '0'
+        
         import pygame
         import numpy as np
         

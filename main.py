@@ -873,9 +873,9 @@ def screen_speakers(stdscr):
     
     log_debug("=== Iniciando test de SPEAKERS ===")
     
-    # NO matar pipewire - intentar primero con el sistema tal como está
-    # Si falla, play_audio_test probará múltiples métodos
-    log_debug("Dejando pipewire/pulseaudio activos para compatibilidad")
+    # Estrategia: primero intentar CON pipewire activo
+    # Si falla el primer intento, matar pipewire y reintentar
+    log_debug("Primera ronda: CON pipewire/pulseaudio activo")
     
     # PRUEBA ALTAVOZ IZQUIERDO (LEFT)
     stdscr.erase()

@@ -1426,6 +1426,7 @@ def main(stdscr):
             current_test += 1
     
     # Calcular resultado final
+    log_debug("=== Calculando resultado final ===")
     final = "PASS"
     if results.get('speakers') != "OK": final = "FAIL"
     if results.get('microphone') != "OK": final = "FAIL"
@@ -1437,10 +1438,16 @@ def main(stdscr):
             if d["st"] == "FAIL": 
                 final = "FAIL"
     
+    log_debug(f"Resultado final: {final}")
+    log_debug(f"Resultados completos: {results}")
+    
     # Enviar a servidor
+    log_debug("=== Enviando a servidor ===")
     ok, msg = send_to_server(hw, final, results, results['wipe'], tech)
+    log_debug(f"Envío servidor: ok={ok}, msg={msg}")
     
     # Pantalla final - DEBE ESPERAR
+    log_debug("=== Mostrando pantalla final ===")
     try:
         stdscr.clear()
         draw_header(stdscr, "INFORME FINAL")

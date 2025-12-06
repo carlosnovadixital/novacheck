@@ -840,8 +840,19 @@ def screen_speakers(stdscr):
     except: pass
     
     key = stdscr.getch()
+    log_debug(f"Tecla capturada para RIGHT: {key}")
     if key in [32, 10, 13]:
         res["R"]="OK"
+        log_debug("RIGHT marcado como OK")
+    else:
+        log_debug(f"RIGHT marcado como FAIL (tecla {key} no es SPACE/ENTER)")
+    
+    log_debug(f"Resultado final SPEAKERS: {res}")
+    return "OK" if res["L"]=="OK" and res["R"]=="OK" else "FAIL"
+
+def screen_microphone(stdscr):
+    """Test solo de micrófono"""
+    log_debug("=== Iniciando test de MICRÓFONO ===")
     
     # PRUEBA DE MICRÓFONO
     stdscr.erase()

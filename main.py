@@ -1493,10 +1493,12 @@ def main(stdscr):
                 if key in [ord('q'), ord('Q')]:
                     break
         
-        # Usuario presionó Q - apagar
+        # Usuario presionó Q/ENTER/SPACE - apagar
+        log_debug("Usuario confirmó apagado")
         stdscr.clear()
         center(stdscr, h//2, "Apagando...", curses.A_BOLD)
         stdscr.refresh()
+        log_debug("Ejecutando poweroff...")
         time.sleep(1)
         os.system("poweroff")
         

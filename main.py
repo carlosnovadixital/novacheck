@@ -906,8 +906,8 @@ def screen_speakers(stdscr):
     
     time.sleep(1)
     
-    # Reproducir solo en canal RIGHT usando pygame
-    play_audio_pygame('right')
+    # Reproducir solo en canal RIGHT
+    play_audio_test('right')
     
     time.sleep(1)
     

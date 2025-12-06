@@ -3,6 +3,18 @@
 
 import sys, os, time, subprocess, datetime, shutil, json, curses
 
+# Configurar logging antes de cualquier cosa
+LOG_FILE = "/tmp/novacheck_debug.log"
+log_handle = open(LOG_FILE, 'w')
+
+def log_debug(msg):
+    """Escribir mensaje de debug al log"""
+    try:
+        log_handle.write(f"[{datetime.datetime.now()}] {msg}\n")
+        log_handle.flush()
+    except:
+        pass
+
 import curses
 import json
 import datetime

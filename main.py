@@ -1357,8 +1357,11 @@ def main(stdscr):
     
     current_test = 0
     
+    log_debug(f"=== Iniciando loop de tests. Total tests: {len(tests)} ===")
+    
     while current_test < len(tests):
         test = tests[current_test]
+        log_debug(f"=== Ejecutando test {current_test}: {test['name']} ===")
         
         try:
             # Ejecutar prueba

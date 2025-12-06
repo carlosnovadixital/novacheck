@@ -1236,8 +1236,11 @@ def main(stdscr):
             elif test['name'] == 'Auto-Tests':
                 results['auto'] = screen_auto(stdscr)
                 
-            elif test['name'] == 'Audio':
-                results['audio'] = screen_audio_adv(stdscr)
+            elif test['name'] == 'Speakers':
+                results['speakers'] = screen_speakers(stdscr)
+                
+            elif test['name'] == 'Micrófono':
+                results['microphone'] = screen_microphone(stdscr)
                 
             elif test['name'] == 'Visual':
                 results['visual'] = screen_visual(stdscr)

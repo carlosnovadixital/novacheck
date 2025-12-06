@@ -1409,6 +1409,8 @@ def main(stdscr):
             
             # Avanzar automáticamente a siguiente prueba (sin navegación)
             current_test += 1
+    
+    log_debug(f"=== Loop de tests completado. Total ejecutados: {current_test} ===")
             log_debug(f"Test {test['name']} completado. Avanzando a test {current_test}")
             
         except Exception as e:

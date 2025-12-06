@@ -1235,13 +1235,13 @@ def main(stdscr):
                 draw_header(stdscr, "BORRADO SEGURO")
                 try:
                     stdscr.addstr(10, 10, "¿Ejecutar BORRADO SEGURO de disco?", curses.A_BOLD)
-                    stdscr.addstr(12, 10, "[S/SPACE/ENTER] = Sí, ejecutar WIPE")
-                    stdscr.addstr(13, 10, "[N] = No, saltar WIPE")
+                    stdscr.addstr(12, 10, "[S] = Sí, ejecutar WIPE", curses.color_pair(3))
+                    stdscr.addstr(13, 10, "[Cualquier otra] = Saltar WIPE")
                     stdscr.refresh()
                 except: pass
                 
                 key = stdscr.getch()
-                if key in [115, 83, 32, 10, 13]:  # S, SPACE, ENTER
+                if key in [115, 83]:  # Solo 's' o 'S'
                     results['wipe'] = screen_wipe(stdscr)
                 else:
                     results['wipe'] = "SKIP"

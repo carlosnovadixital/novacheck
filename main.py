@@ -743,10 +743,11 @@ def play_simple_audio_test_fallback():
     
     return result.returncode == 0
 
-def screen_audio_adv(stdscr):
-    res={"L":"FAIL","R":"FAIL","MIC":"FAIL"}
+def screen_speakers(stdscr):
+    """Test solo de altavoces LEFT/RIGHT"""
+    res={"L":"FAIL","R":"FAIL"}
     
-    log_debug("=== Iniciando test de audio ===")
+    log_debug("=== Iniciando test de SPEAKERS ===")
     
     # Matar pipewire y pulseaudio para acceso directo a ALSA
     log_debug("Matando pipewire y pulseaudio...")

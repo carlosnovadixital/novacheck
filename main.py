@@ -796,8 +796,12 @@ def screen_speakers(stdscr):
     except: pass
     
     key = stdscr.getch()
+    log_debug(f"Tecla capturada para LEFT: {key}")
     if key in [32, 10, 13]:
         res["L"]="OK"
+        log_debug("LEFT marcado como OK")
+    else:
+        log_debug(f"LEFT marcado como FAIL (tecla {key} no es SPACE/ENTER)")
     
     # PRUEBA ALTAVOZ DERECHO (RIGHT)
     stdscr.erase()

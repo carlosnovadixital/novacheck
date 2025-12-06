@@ -1406,6 +1406,7 @@ def main(stdscr):
             
             # Avanzar automáticamente a siguiente prueba (sin navegación)
             current_test += 1
+            log_debug(f"Test {test['name']} completado. Avanzando a test {current_test}")
             
         except Exception as e:
             # Error en prueba - loguear y continuar
